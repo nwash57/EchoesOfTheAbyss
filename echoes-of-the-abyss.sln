@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoGen.SourceGenerator", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoesOfTheAbyss.App", "src\EchoesOfTheAbyss.App\EchoesOfTheAbyss.App.csproj", "{CE49AAC7-8665-4B2C-9FB9-286788C2CF9F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoesOfTheAbyssLib", "src\EchoesOfTheAbyss.Lib\EchoesOfTheAbyssLib.csproj", "{7F7D3963-B21A-4E62-8FDA-537C234CD319}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoesOfTheAbyss.Lib", "src\EchoesOfTheAbyss.Lib\EchoesOfTheAbyss.Lib.csproj", "{7F7D3963-B21A-4E62-8FDA-537C234CD319}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

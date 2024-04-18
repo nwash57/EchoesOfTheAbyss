@@ -269,207 +269,207 @@ if (functionContract.Description != null) {
             
             #line default
             #line hidden
-            this.Write("                Description = @\"");
+            this.Write("                Description = \"\"\"\r\n");
             
-            #line 66 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 67 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(functionContract.Description));
             
             #line default
             #line hidden
-            this.Write("\",\r\n");
+            this.Write("\r\n\"\"\",\r\n");
             
-            #line 67 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 69 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
             #line hidden
             
-            #line 68 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 70 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 if (functionContract.ReturnType != null) {
             
             #line default
             #line hidden
             this.Write("                ReturnType = typeof(");
             
-            #line 69 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 71 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(functionContract.ReturnType));
             
             #line default
             #line hidden
             this.Write("),\r\n");
             
-            #line 70 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 72 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
             #line hidden
             
-            #line 71 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 73 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 if (functionContract.ReturnDescription != null) {
             
             #line default
             #line hidden
             this.Write("                ReturnDescription = @\"");
             
-            #line 72 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 74 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(functionContract.ReturnDescription));
             
             #line default
             #line hidden
             this.Write("\",\r\n");
             
-            #line 73 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 75 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
             #line hidden
             
-            #line 74 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 76 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 if (functionContract.Parameters != null) {
             
             #line default
             #line hidden
             this.Write("                Parameters = new []\r\n                {\r\n");
             
-            #line 77 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 79 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 foreach (var parameter in functionContract.Parameters) {
             
             #line default
             #line hidden
             this.Write("                    new FunctionParameterContract\r\n                    {\r\n");
             
-            #line 80 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 82 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 if (parameter.Name != null) {
             
             #line default
             #line hidden
             this.Write("                        Name = @\"");
             
-            #line 81 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 83 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(parameter.Name));
             
             #line default
             #line hidden
             this.Write("\",\r\n");
             
-            #line 82 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 84 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
             #line hidden
             
-            #line 83 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 85 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 if (parameter.Description != null) {
             
             #line default
             #line hidden
             this.Write("                        Description = @\"");
             
-            #line 84 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 86 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(parameter.Description));
             
             #line default
             #line hidden
             this.Write("\",\r\n");
             
-            #line 85 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 87 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
             #line hidden
             
-            #line 86 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 88 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 if (parameter.Type != null) {
             
             #line default
             #line hidden
             this.Write("                        ParameterType = typeof(");
             
-            #line 87 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 89 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(parameter.Type));
             
             #line default
             #line hidden
             this.Write("),\r\n");
             
-            #line 88 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 90 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
             #line hidden
             this.Write("                        IsRequired = ");
             
-            #line 89 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 91 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(parameter.IsOptional ? "false" : "true"));
             
             #line default
             #line hidden
             this.Write(",\r\n");
             
-            #line 90 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 92 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 if (parameter.DefaultValue != null) {
             
             #line default
             #line hidden
             this.Write("                        DefaultValue = ");
             
-            #line 91 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 93 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(parameter.DefaultValue));
             
             #line default
             #line hidden
             this.Write(",\r\n");
             
-            #line 92 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 94 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
             #line hidden
             this.Write("                    },\r\n");
             
-            #line 94 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 96 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
             #line hidden
             this.Write("                },\r\n");
             
-            #line 96 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 98 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
             #line hidden
             this.Write("            };\r\n        }\r\n\r\n        public FunctionDefinition ");
             
-            #line 100 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 102 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(functionContract.GetFunctionDefinitionName()));
             
             #line default
             #line hidden
             this.Write("\r\n        {\r\n            get => this.");
             
-            #line 102 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 104 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(functionContract.GetFunctionContractName()));
             
             #line default
             #line hidden
             this.Write(".ToOpenAIFunctionDefinition();\r\n        }\r\n");
             
-            #line 104 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 106 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
             #line hidden
             this.Write("    }\r\n");
             
-            #line 106 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 108 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 if (!String.IsNullOrEmpty(NameSpace)) {
             
             #line default
             #line hidden
             this.Write("}\r\n");
             
-            #line 108 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+            #line 110 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 }
             
             #line default
@@ -478,7 +478,7 @@ if (!String.IsNullOrEmpty(NameSpace)) {
             return this.GenerationEnvironment.ToString();
         }
         
-        #line 110 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
+        #line 112 "C:\code\echoes-of-the-abyss\src\AutoGen.SourceGenerator\Template\FunctionCallTemplate.tt"
 
 public string NameSpace {get; set;}
 public string ClassName {get; set;}

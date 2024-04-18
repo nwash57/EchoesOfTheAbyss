@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\EchoesOfTheAbyss.Lib\EchoesOfTheAbyssLib.csproj" />
+      <ProjectReference Include="..\EchoesOfTheAbyss.Lib\EchoesOfTheAbyss.Lib.csproj" />
     </ItemGroup>
 
 </Project>

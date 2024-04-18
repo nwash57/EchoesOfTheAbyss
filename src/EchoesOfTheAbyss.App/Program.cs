@@ -1,6 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using EchoesOfTheAbyssApp;
-using InputCategorizer = EchoesOfTheAbyss.Lib.InputCategorizer;
+using AutoGen.LiteLLM;
+using EchoesOfTheAbyss.Lib;
 
-await InputCategorizer.RunAsync("Where am I?");
+// await PromptTypeCategorizerAgent.RunAsync("Where am I?");
+
+var config = new LiteLlmConfig(
+    "localhost",
+    4000,
+    Models.NaturalFunctions);
+await GameOrchestrator.RunAsync(config);
