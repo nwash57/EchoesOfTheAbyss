@@ -4,3 +4,8 @@ bin/
 obj/
 
 .DotSettings.user
+
+.junie/
+.claude/
+.jetclient/
+.vscode/

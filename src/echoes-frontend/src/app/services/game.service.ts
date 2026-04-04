@@ -1,0 +1,128 @@
+import { Injectable, signal } from '@angular/core';
+import { Message, Messager } from '../models/message.model';
+import { WorldContext, Equipment, Player, Location } from '../models/world-context.model';
+
+const EMPTY_WORLD: WorldContext = {
+  difficulty: 50,
+  player: {
+    demographics: { firstName: '', lastName: '', age: 0, occupation: '' },
+    stats: { currentHealth: 100, maxHealth: 100, baseArmor: 0, baseStrength: 0 }
+  },
+  currentLocation: {
+    title: '',
+    coordinates: { x: 0, y: 0 },
+    shortDescription: '',
+    longDescription: '',
+    type: 'default'
+  },
+  equipment: {
+    head: null,
+    torso: null,
+    legs: null,
+    feet: null,
+    rightHand: null,
+    leftHand: null
+  }
+};
+
+@Injectable({ providedIn: 'root' })
+export class GameService {
+  private _messages = signal<Message[]>([]);
+  private _worldContext = signal<WorldContext>(EMPTY_WORLD);
+  private _knownLocations = signal<Location[]>([]);
+  private _isThinking = signal<boolean>(false);
+  private _isConnected = signal<boolean>(false);
+
+  readonly messages = this._messages.asReadonly();
+  readonly worldContext = this._worldContext.asReadonly();
+  readonly knownLocations = this._knownLocations.asReadonly();
+  readonly isThinking = this._isThinking.asReadonly();
+  readonly isConnected = this._isConnected.asReadonly();
+
+  private ws: WebSocket | null = null;
+
+  startGame(): void {
+    this.connect();
+  }
+
+  private connect(): void {
+    this.ws = new WebSocket('ws://localhost:5000/ws');
+
+    this.ws.onopen = () => {
+      this._isConnected.set(true);
+      this._isThinking.set(true);
+    };
+
+    this.ws.onmessage = (event: MessageEvent) => {
+      const msg = JSON.parse(event.data as string);
+      this.handleServerMessage(msg);
+    };
+
+    this.ws.onclose = () => {
+      this._isConnected.set(false);
+    };
+
+    this.ws.onerror = () => {
+      this._isConnected.set(false);
+    };
+  }
+
+  private handleServerMessage(msg: Record<string, unknown>): void {
+    switch (msg['type']) {
+      case 'narrator_complete': {
+        const message: Message = {
+          id: msg['id'] as string,
+          messager: Messager.Narrator,
+          speech: msg['speech'] as string,
+          thoughts: (msg['thoughts'] as string[]) ?? [],
+          isExpanded: false
+        };
+        this._messages.update(msgs => [...msgs, message]);
+        this._isThinking.set(false);
+        break;
+      }
+      case 'world_update': {
+        const context = msg['worldContext'] as WorldContext;
+        this._worldContext.set(context);
+        this.addLocationIfNew(context.currentLocation);
+        break;
+      }
+    }
+  }
+
+  private addLocationIfNew(loc: Location): void {
+    const exists = this._knownLocations().some(
+      l => l.coordinates.x === loc.coordinates.x && l.coordinates.y === loc.coordinates.y
+    );
+    if (!exists) {
+      this._knownLocations.update(locs => [...locs, loc]);
+    }
+  }
+
+  toggleMessageExpanded(id: string): void {
+    this._messages.update(msgs =>
+      msgs.map(m => (m.id === id ? { ...m, isExpanded: !m.isExpanded } : m))
+    );
+  }
+
+  submitMessage(text: string): void {
+    if (!text.trim() || !this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+    const playerMsg: Message = {
+      id: Date.now().toString(),
+      messager: Messager.Player,
+      speech: text.trim(),
+      thoughts: [],
+      isExpanded: false
+    };
+
+    this._messages.update(msgs => [...msgs, playerMsg]);
+    this._isThinking.set(true);
+    this.ws.send(JSON.stringify({ type: 'player_input', text: text.trim() }));
+  }
+
+  setDifficulty(value: number): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    this.ws.send(JSON.stringify({ type: 'set_difficulty', difficulty: value }));
+  }
+}

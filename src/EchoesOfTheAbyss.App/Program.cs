@@ -1,12 +1,14 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using EchoesOfTheAbyss.Lib;
+using EchoesOfTheAbyss.Lib.Configuration;
+using EchoesOfTheAbyss.Lib.Models;
+using EchoesOfTheAbyss.Lib.Services;
 
-using AutoGen.LiteLLM;
-using EchoesOfTheAbyss.Lib;
+System.Console.OutputEncoding = System.Text.Encoding.UTF8;
+	
+var config = new LlmConfig(
+    "http://localhost",
+    1234,
+    LlmModels.DeepSeekR1DistillQwen14B);
 
-// await PromptTypeCategorizerAgent.RunAsync("Where am I?");
-
-var config = new LiteLlmConfig(
-    "localhost",
-    4000,
-    Models.NaturalFunctions);
-await GameOrchestrator.RunAsync(config);
+var gameOrchestrator = new GameOrchestrator(config);
+await gameOrchestrator.RunAsync();

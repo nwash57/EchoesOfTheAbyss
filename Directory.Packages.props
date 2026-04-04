@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- OpenAI -->
+    <PackageVersion Include="OpenAI" Version="2.2.0" />
+
+    <!-- Console and UI -->
+    <PackageVersion Include="Spectre.Console" Version="0.50.0" />
+
+    <!-- Code analysis and generation (AutoGen.SourceGenerator) -->
+    <PackageVersion Include="System.CodeDom" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.0" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
+
+    <!-- Development tools -->
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+  </ItemGroup>
+</Project>

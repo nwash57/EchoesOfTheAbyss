@@ -1,0 +1,122 @@
+<div class="app-shell">
+
+  <!-- ═══ Title Header ═══ -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-ornament">◆</div>
+      <h1 class="header-title">Echoes of the Abyss</h1>
+      <div class="header-ornament">◆</div>
+    </div>
+    
+    <div class="difficulty-control">
+      <label for="difficulty-slider">Difficulty: {{ game.worldContext().difficulty }}</label>
+      <input 
+        id="difficulty-slider"
+        type="range" 
+        min="0" 
+        max="100" 
+        [value]="game.worldContext().difficulty"
+        (input)="onDifficultyChange($event)"
+      >
+    </div>
+
+    <div class="header-rule"></div>
+  </header>
+
+  <!-- ═══ Main Layout ═══ -->
+  <main class="app-main">
+    <div class="panel-conversation">
+      <app-conversation-panel />
+    </div>
+    <div class="panel-details">
+      <app-details-panel />
+    </div>
+  </main>
+
+  <!-- ═══ Start Screen Overlay ═══ -->
+  @if (!game.isConnected()) {
+    <div class="start-overlay">
+      <div class="start-card">
+        <div class="start-ornament">◆ ◆ ◆</div>
+        <h2 class="start-title">Echoes of the Abyss</h2>
+        <p class="start-subtitle">The darkness awaits your descent.</p>
+        <button class="start-button" (click)="game.startGame()">
+          Begin
+        </button>
+      </div>
+    </div>
+  }
+
+</div>
+
+<style>
+  .start-overlay {
+    position: fixed;
+    inset: 0;
+    background: oklch(6% 0.015 265 / 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .start-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 3rem 4rem;
+    border: 1px solid oklch(30% 0.06 75 / 0.4);
+    background: oklch(9% 0.018 265);
+  }
+
+  .start-ornament {
+    font-size: 0.6rem;
+    letter-spacing: 0.5em;
+    color: oklch(45% 0.1 75 / 0.6);
+  }
+
+  .start-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.12em;
+    color: oklch(78% 0.1 75);
+    font-weight: 400;
+    margin: 0;
+  }
+
+  .start-subtitle {
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: oklch(50% 0.02 265);
+    margin: 0;
+  }
+
+  .start-button {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: oklch(62% 0.14 75);
+    background: none;
+    border: 1px solid oklch(62% 0.14 75 / 0.4);
+    padding: 0.75rem 2.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+  }
+
+  .start-button:hover {
+    border-color: oklch(62% 0.14 75);
+    background: oklch(62% 0.14 75 / 0.08);
+    color: oklch(78% 0.12 75);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
