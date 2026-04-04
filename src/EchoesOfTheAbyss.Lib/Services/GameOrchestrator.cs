@@ -12,11 +12,13 @@ public class GameOrchestrator
 {
 	private ChatClient _chatClient;
 	private UiManager _uiManager;
+	private ILogger _logger;
 	private List<Message> _messages = new();
 	private WorldContext _worldContext = new();
 	private ImaginationPipeline _imaginationPipeline;
+	private string _sessionId = string.Empty;
 
-	public GameOrchestrator(LlmConfig config)
+	public GameOrchestrator(LlmConfig config, ILogger? logger = null)
 	{
 		_chatClient = new ChatClient(
 			config.Model,
@@ -27,10 +29,15 @@ public class GameOrchestrator
 		_uiManager.ConversationEntered += ProcessTextInput;
 
 		_imaginationPipeline = new ImaginationPipeline(_chatClient);
+		
+		_logger = logger ?? new SessionLogger();
 	}
 	
     public async Task RunAsync()
     {
+        _sessionId = GenerateSessionId();
+        await _logger.InitializeAsync(_sessionId);
+
 		var narration = _chatClient.CompleteChatStreamingAsync(
 			new SystemChatMessage(Prompts.Narrator),
 			new SystemChatMessage(Prompts.Exposition));
@@ -42,7 +49,20 @@ public class GameOrchestrator
         {
 			
 			var newMessage = await ProcessThoughtsAsync(narration);
+            var narrationLogEntry = new NarrationLogEntry
+            {
+                SessionId = _sessionId,
+                Round = round,
+                Thoughts = string.Join("\n", newMessage.Thoughts),
+                Speech = newMessage.Speech
+            };
+            await _logger.LogNarrationAsync(narrationLogEntry);
+
 			_worldContext = await _imaginationPipeline.RunAsync(newMessage.Speech, _worldContext);
+			
+            var worldStateLogEntry = WorldStateLogEntry.FromWorldContext(_worldContext, _sessionId, round);
+            await _logger.LogWorldStateAsync(worldStateLogEntry);
+
 			_messages.Add(newMessage);
 			
 			
@@ -53,7 +73,15 @@ public class GameOrchestrator
 				waitingForInput = uiLoopContext.WaitingForInput;
 			}
 			
-		} while (round++ < 30);
+            round++;
+        } while (round <= 30);
+
+        await _logger.CloseSessionAsync();
+    }
+
+    private static string GenerateSessionId()
+    {
+        return DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss");
     }
 
 	private void ProcessTextInput(object sender, string text)

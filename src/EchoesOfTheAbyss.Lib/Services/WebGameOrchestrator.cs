@@ -22,16 +22,21 @@ public class WebGameOrchestrator
     private readonly List<ChatMessage> _chatHistory = [];
     private WorldContext _worldContext = new();
     private readonly ImaginationPipeline _imaginationPipeline;
+    private readonly ILogger _logger;
+    private string _sessionId = string.Empty;
+    private int _round = 0;
 
-    public WebGameOrchestrator(LlmConfig config, Func<string, Task> send)
+    public WebGameOrchestrator(LlmConfig config, Func<string, Task> send, ILogger? logger = null)
     {
         _chatClient = new ChatClient(
             config.Model,
             new ApiKeyCredential("aoeu"),
             new OpenAIClientOptions { Endpoint = new Uri($"{config.Host}:{config.Port}/v1") });
         _send = send;
+        _logger = logger ?? new SessionLogger();
         _imaginationPipeline = new ImaginationPipeline(_chatClient);
 
+        // Initial setup - these stay in history as system context
         _chatHistory.Add(new SystemChatMessage(Prompts.Narrator));
         _chatHistory.Add(new UserChatMessage(Prompts.Exposition));
     }
@@ -46,23 +51,35 @@ public class WebGameOrchestrator
 
     public async Task RunAsync(CancellationToken ct = default)
     {
+        _sessionId = DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss");
+        await _logger.InitializeAsync(_sessionId);
+
         while (!ct.IsCancellationRequested)
         {
-            var messages = new List<ChatMessage>(_chatHistory);
-            messages.Insert(0, new SystemChatMessage($"Current World Context:\n{_worldContext}"));
+            var messages = new List<ChatMessage>();
+            messages.Add(new SystemChatMessage($"Current World Context:\n{_worldContext}"));
+            messages.AddRange(_chatHistory);
             
             var narration = _chatClient.CompleteChatStreamingAsync(messages, cancellationToken: ct);
             var message = await StreamNarrationAsync(narration, ct);
 
             _chatHistory.Add(new AssistantChatMessage(message.Speech));
 
+            await LogNarrationAsync(message.Thoughts, message.Speech, _sessionId, _round);
+
             _worldContext = await _imaginationPipeline.RunAsync(message.Speech, _worldContext);
+            
+            await LogWorldStateAsync(_worldContext, _sessionId, _round);
 
             await SendJsonAsync(new { Type = "world_update", WorldContext = _worldContext }, ct);
 
             var playerInput = await _playerInputChannel.Reader.ReadAsync(ct);
             _chatHistory.Add(new UserChatMessage(playerInput));
+            
+            _round++;
         }
+        
+        await _logger.CloseSessionAsync();
     }
 
     private async Task<Message> StreamNarrationAsync(
@@ -120,4 +137,25 @@ public class WebGameOrchestrator
         var json = JsonSerializer.Serialize(payload, JsonOptions);
         return _send(json);
     }
+
+    private async Task LogNarrationAsync(List<string> thoughts, string speech, string sessionId, int round)
+    {
+        var entry = new NarrationLogEntry
+        {
+            Timestamp = DateTime.UtcNow,
+            SessionId = sessionId,
+            Round = round,
+            Thoughts = string.Join("\n", thoughts),
+            Speech = speech
+        };
+        
+        await _logger.LogNarrationAsync(entry);
+    }
+
+    private async Task LogWorldStateAsync(WorldContext context, string sessionId, int round)
+    {
+        var entry = WorldStateLogEntry.FromWorldContext(context, sessionId, round);
+        await _logger.LogWorldStateAsync(entry);
+    }
+
 }
