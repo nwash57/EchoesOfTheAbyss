@@ -7,7 +7,7 @@ const EMPTY_WORLD: WorldContext = {
   narrationVerbosity: VerbosityLevel.Balanced,
   player: {
     demographics: { firstName: '', lastName: '', age: 0, occupation: '' },
-    stats: { currentHealth: 100, maxHealth: 100, baseArmor: 0, baseStrength: 0 }
+    stats: { currentHealth: 100, maxHealth: 100, baseArmor: 0, baseStrength: 0, hasUsedSecondWind: false }
   },
   currentLocation: {
     title: '',
@@ -33,12 +33,24 @@ export class GameService {
   private _knownLocations = signal<Location[]>([]);
   private _isThinking = signal<boolean>(false);
   private _isConnected = signal<boolean>(false);
+  private _isGameOver = signal<boolean>(false);
+  private _storySummary = signal<string>('');
+
+  private _isPlayerUpdating = signal<boolean>(false);
+  private _isLocationUpdating = signal<boolean>(false);
+  private _isEquipmentUpdating = signal<boolean>(false);
 
   readonly messages = this._messages.asReadonly();
   readonly worldContext = this._worldContext.asReadonly();
   readonly knownLocations = this._knownLocations.asReadonly();
   readonly isThinking = this._isThinking.asReadonly();
   readonly isConnected = this._isConnected.asReadonly();
+  readonly isGameOver = this._isGameOver.asReadonly();
+  readonly storySummary = this._storySummary.asReadonly();
+
+  readonly isPlayerUpdating = this._isPlayerUpdating.asReadonly();
+  readonly isLocationUpdating = this._isLocationUpdating.asReadonly();
+  readonly isEquipmentUpdating = this._isEquipmentUpdating.asReadonly();
 
   private ws: WebSocket | null = null;
 
@@ -86,6 +98,29 @@ export class GameService {
         const context = msg['worldContext'] as WorldContext;
         this._worldContext.set(context);
         this.addLocationIfNew(context.currentLocation);
+        this._isPlayerUpdating.set(false);
+        this._isLocationUpdating.set(false);
+        this._isEquipmentUpdating.set(false);
+        break;
+      }
+      case 'imagination_starting': {
+        const evalData = msg['eval'] as { updatePlayer: boolean, updateLocation: boolean, updateEquipment: boolean };
+        this._isPlayerUpdating.set(evalData.updatePlayer);
+        this._isLocationUpdating.set(evalData.updateLocation);
+        this._isEquipmentUpdating.set(evalData.updateEquipment);
+        break;
+      }
+      case 'game_over': {
+        this._storySummary.set(msg['summary'] as string);
+        this._isGameOver.set(true);
+        this._isThinking.set(false);
+        break;
+      }
+      case 'restart_confirmed': {
+        this._messages.set([]);
+        this._knownLocations.set([]);
+        this._isGameOver.set(false);
+        this._storySummary.set('');
         break;
       }
     }
@@ -130,5 +165,10 @@ export class GameService {
   setNarrationVerbosity(value: VerbosityLevel): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     this.ws.send(JSON.stringify({ type: 'set_narration_verbosity', narrationVerbosity: value }));
+  }
+
+  restartGame(): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    this.ws.send(JSON.stringify({ type: 'restart_game' }));
   }
 }

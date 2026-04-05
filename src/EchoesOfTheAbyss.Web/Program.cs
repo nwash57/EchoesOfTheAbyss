@@ -62,6 +62,10 @@ app.Map("/ws", async context =>
             {
                 orchestrator.EnqueuePlayerInput(msg.Text);
             }
+            else if (msg?.Type == "restart_game")
+            {
+                orchestrator.EnqueuePlayerInput("restart");
+            }
             else if (msg?.Type == "set_difficulty" && msg.Difficulty is not null
                      && Enum.TryParse<DifficultyLevel>(msg.Difficulty, out var difficulty))
             {

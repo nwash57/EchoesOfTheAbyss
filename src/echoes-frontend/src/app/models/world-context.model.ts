@@ -10,6 +10,7 @@ export interface PlayerStats {
   maxHealth: number;
   baseArmor: number;
   baseStrength: number;
+  hasUsedSecondWind: boolean;
 }
 
 export interface Player {

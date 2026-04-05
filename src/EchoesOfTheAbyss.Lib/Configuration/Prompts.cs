@@ -31,6 +31,11 @@ public static class Prompts
         Obey these settings strictly — they are direct instructions for how to narrate.
         Never explicitly mention or discuss these parameters in your narration.
 
+        DEATH AND SECOND WIND:
+        If the player's health reaches 0, you must narrate their final moments or a brush with death.
+        1. If the player has NOT used their 'Second Wind' yet (hasUsedSecondWind is false), there is a chance for a miraculous event, a surge of adrenaline, or an intervention related to the story to allow them to survive. This survivor's surge should leave them with a small amount of health to continue. Whether this happens is influenced by the current Difficulty settings—at higher difficulties, survival is less likely.
+        2. If survival does not occur, or if the player HAS already used their 'Second Wind' (hasUsedSecondWind is true), narrate their definitive death. This will be the final narration of their journey.
+
         You orchestrate the game world as the protagonist requests information about their predicament
             and informs you of the actions they take.
         If the protagonist asks or queries about their environment you should describe in brief detail

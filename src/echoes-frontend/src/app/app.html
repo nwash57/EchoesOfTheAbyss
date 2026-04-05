@@ -59,6 +59,24 @@
     </div>
   }
 
+  <!-- ═══ Game Over Overlay ═══ -->
+  @if (game.isGameOver()) {
+    <div class="start-overlay game-over-overlay">
+      <div class="start-card game-over-card">
+        <div class="start-ornament">💀 💀 💀</div>
+        <h2 class="start-title game-over-title">You Have Perished</h2>
+
+        <div class="summary-container">
+          <p class="summary-text">{{ game.storySummary() }}</p>
+        </div>
+
+        <button class="start-button restart-button" (click)="game.restartGame()">
+          Restart Journey
+        </button>
+      </div>
+    </div>
+  }
+
 </div>
 
 <style>
@@ -125,6 +143,49 @@
     border-color: oklch(62% 0.14 75);
     background: oklch(62% 0.14 75 / 0.08);
     color: oklch(78% 0.12 75);
+  }
+
+  /* Game Over Styles */
+  .game-over-overlay {
+    background: oklch(4% 0.015 265 / 0.96);
+  }
+
+  .game-over-card {
+    border-color: oklch(40% 0.2 20);
+    max-width: 600px;
+    box-shadow: 0 0 50px oklch(20% 0.2 20 / 0.3);
+  }
+
+  .game-over-title {
+    color: oklch(60% 0.15 20);
+  }
+
+  .summary-container {
+    padding: 1.5rem;
+    background: oklch(12% 0.02 265);
+    border: 1px solid oklch(25% 0.02 265);
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: 'Crimson Pro', serif;
+  }
+
+  .summary-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: oklch(85% 0.02 265);
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  .restart-button {
+    color: oklch(60% 0.15 20);
+    border-color: oklch(60% 0.15 20 / 0.4);
+  }
+
+  .restart-button:hover {
+    border-color: oklch(60% 0.15 20);
+    background: oklch(60% 0.15 20 / 0.08);
+    color: oklch(75% 0.15 20);
   }
 
   @keyframes fadeIn {

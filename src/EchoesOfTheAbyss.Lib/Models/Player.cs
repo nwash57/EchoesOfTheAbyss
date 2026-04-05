@@ -47,6 +47,7 @@ public class PlayerStats : ISchemable
 	public int MaxHealth { get; set; } = 100;
 	public int BaseArmor { get; set; } = 0;
 	public int BaseStrength { get; set; } = 0;
+	public bool HasUsedSecondWind { get; set; } = false;
 
 	public static string JsonSchema =>
 		"""
@@ -75,13 +76,18 @@ public class PlayerStats : ISchemable
 					"minimum": 0,
 					"maximum": 100,
 					"description": "The base strength of the player"
+				},
+				"hasUsedSecondWind": {
+					"type": "boolean",
+					"description": "True if the player has already used their one-time 'second wind' to escape death"
 				}
 			},
 			"required": [
 				"currentHealth",
 				"maxHealth",
 				"baseArmor",
-				"baseStrength"
+				"baseStrength",
+				"hasUsedSecondWind"
 			]
 		}
 		""";

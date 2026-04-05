@@ -78,11 +78,30 @@ public class WebGameOrchestrator
 
             await LogNarrationAsync(message.Thoughts, message.Speech, _sessionId, _round);
 
-            _worldContext = await _imaginationPipeline.RunAsync(lastPlayerInput, message.Speech, _worldContext);
+            var eval = await _imaginationPipeline.EvaluateAsync(lastPlayerInput, message.Speech, _worldContext);
+            await SendJsonAsync(new { Type = "imagination_starting", Eval = eval }, ct);
+
+            var (context, _) = await _imaginationPipeline.RunAsync(lastPlayerInput, message.Speech, _worldContext);
+            _worldContext = context;
 
             await LogWorldStateAsync(_worldContext, _sessionId, _round);
 
             await SendJsonAsync(new { Type = "world_update", WorldContext = _worldContext }, ct);
+
+            if (_worldContext.Player.Stats.CurrentHealth <= 0)
+            {
+                var summary = await GenerateStorySummaryAsync(ct);
+                await SendJsonAsync(new { Type = "game_over", Summary = summary }, ct);
+                
+                // Wait for restart
+                var input = await _playerInputChannel.Reader.ReadAsync(ct);
+                if (input.Trim().Equals("restart", StringComparison.OrdinalIgnoreCase))
+                {
+                    await RestartGameAsync(ct);
+                    continue;
+                }
+                break; // Or handle other inputs
+            }
 
             var playerInput = await _playerInputChannel.Reader.ReadAsync(ct);
             _chatHistory.Add(new UserChatMessage(playerInput));
@@ -92,6 +111,32 @@ public class WebGameOrchestrator
         }
         
         await _logger.CloseSessionAsync();
+    }
+
+    private async Task<string> GenerateStorySummaryAsync(CancellationToken ct)
+    {
+        var summaryPrompt = "Provide a brief, abridged version of the player's story so far, highlighting their journey and their ultimate end. Keep it to 1-2 paragraphs.";
+        var messages = new List<ChatMessage>();
+        messages.AddRange(_chatHistory);
+        messages.Add(new UserChatMessage(summaryPrompt));
+        
+        var response = await _chatClient.CompleteChatAsync(messages, cancellationToken: ct);
+        return response.Value.Content[0].Text;
+    }
+
+    private async Task RestartGameAsync(CancellationToken ct)
+    {
+        _chatHistory.Clear();
+        _worldContext = new WorldContext();
+        _round = 0;
+        _chatHistory.Add(new SystemChatMessage(Prompts.Narrator));
+        _chatHistory.Add(new UserChatMessage(Prompts.Exposition));
+        
+        _sessionId = DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss") + "_restart";
+        await _logger.InitializeAsync(_sessionId);
+
+        await SendJsonAsync(new { Type = "restart_confirmed" }, ct);
+        await SendJsonAsync(new { Type = "world_update", WorldContext = _worldContext }, ct);
     }
 
     private async Task<Message> StreamNarrationAsync(

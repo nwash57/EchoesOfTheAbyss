@@ -1,4 +1,5 @@
 using EchoesOfTheAbyss.Lib.Configuration;
+using EchoesOfTheAbyss.Lib.Enums;
 using EchoesOfTheAbyss.Lib.Extensions;
 using EchoesOfTheAbyss.Lib.Models;
 using OpenAI.Chat;
@@ -14,7 +15,7 @@ public class ImaginationPipeline
         _chatClient = chatClient;
     }
 
-    public async Task<WorldContext> RunAsync(string playerInput, string narration, WorldContext current)
+    public async Task<(WorldContext Context, NarrativeEvaluation Eval)> RunAsync(string playerInput, string narration, WorldContext current)
     {
         var eval = await EvaluateAsync(playerInput, narration, current);
 
@@ -47,14 +48,50 @@ public class ImaginationPipeline
         Player player;
         if (eval.UpdatePlayer)
         {
+            var targetHealth = Math.Clamp(current.Player.Stats.CurrentHealth + eval.HealthDelta, 0, current.Player.Stats.MaxHealth);
+            var secondWindHappened = false;
+            
+            if (targetHealth == 0 && !current.Player.Stats.HasUsedSecondWind)
+            {
+                // Calculate chance for Second Wind based on difficulty
+                var chance = current.Difficulty switch
+                {
+                    DifficultyLevel.ExtremelyEasy => 0.95,
+                    DifficultyLevel.Easy          => 0.75,
+                    DifficultyLevel.Balanced      => 0.50,
+                    DifficultyLevel.Hard          => 0.25,
+                    DifficultyLevel.ExtremelyHard => 0.05,
+                    _                             => 0.50
+                };
+
+                if (Random.Shared.NextDouble() < chance)
+                {
+                    targetHealth = 15; // Give them a small amount of health
+                    secondWindHappened = true;
+                }
+            }
+
             var healthConstraint = eval.HealthDelta != 0
-                ? $" The net health change this turn is exactly {eval.HealthDelta:+#;-#;0} HP; set currentHealth to exactly {Math.Clamp(current.Player.Stats.CurrentHealth + eval.HealthDelta, 0, current.Player.Stats.MaxHealth)}."
-                : " No health change occurred this turn; carry current health forward unchanged.";
+                ? $" The net health change this turn is exactly {eval.HealthDelta:+#;-#;0} HP; set currentHealth to exactly {targetHealth}."
+                : $" No health change occurred this turn; carry current health forward unchanged (current: {current.Player.Stats.CurrentHealth}).";
+
+            if (secondWindHappened)
+            {
+                healthConstraint += " CRITICAL: The player just triggered their 'Second Wind'. Set hasUsedSecondWind to true.";
+            }
 
             history.Add(new UserChatMessage(
                 $"Now extract the player's demographics and stats. Ensure they are consistent with the latest narration.{healthConstraint} At the start of the game, currentHealth should be between 70 and 100 based on the initial exposition."));
             var playerJson = await CompleteAsync(history, Player.JsonSchema, "player_context");
             player = playerJson.FromJson<Player>();
+            
+            // Safety: Ensure state is correct based on the code's decision
+            if (secondWindHappened)
+            {
+                player.Stats.HasUsedSecondWind = true;
+                player.Stats.CurrentHealth = Math.Max(player.Stats.CurrentHealth, targetHealth);
+            }
+            
             history.Add(new AssistantChatMessage(playerJson));
         }
         else
@@ -80,17 +117,17 @@ public class ImaginationPipeline
             equipment = current.Equipment;
         }
 
-        return new WorldContext
+        return (new WorldContext
         {
             Difficulty = current.Difficulty,
             NarrationVerbosity = current.NarrationVerbosity,
             Player = player,
             CurrentLocation = location,
             Equipment = equipment
-        };
+        }, eval);
     }
 
-    private async Task<NarrativeEvaluation> EvaluateAsync(string playerInput, string narration, WorldContext current)
+    public async Task<NarrativeEvaluation> EvaluateAsync(string playerInput, string narration, WorldContext current)
     {
         var history = new List<ChatMessage>
         {
