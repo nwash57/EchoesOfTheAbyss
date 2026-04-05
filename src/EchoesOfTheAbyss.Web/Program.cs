@@ -2,6 +2,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using EchoesOfTheAbyss.Lib.Configuration;
+using EchoesOfTheAbyss.Lib.Enums;
 using EchoesOfTheAbyss.Lib.Models;
 using EchoesOfTheAbyss.Lib.Services;
 
@@ -61,9 +62,15 @@ app.Map("/ws", async context =>
             {
                 orchestrator.EnqueuePlayerInput(msg.Text);
             }
-            else if (msg?.Type == "set_difficulty" && msg.Difficulty is not null)
+            else if (msg?.Type == "set_difficulty" && msg.Difficulty is not null
+                     && Enum.TryParse<DifficultyLevel>(msg.Difficulty, out var difficulty))
             {
-                orchestrator.SetDifficulty(msg.Difficulty.Value);
+                await orchestrator.SetDifficulty(difficulty);
+            }
+            else if (msg?.Type == "set_narration_verbosity" && msg.NarrationVerbosity is not null
+                     && Enum.TryParse<VerbosityLevel>(msg.NarrationVerbosity, out var verbosity))
+            {
+                await orchestrator.SetNarrationVerbosity(verbosity);
             }
         }
     }
@@ -77,4 +84,4 @@ app.Map("/ws", async context =>
 
 app.Run("http://localhost:5000");
 
-record WsClientMessage(string Type, string? Text, int? Difficulty);
+record WsClientMessage(string Type, string? Text, string? Difficulty, string? NarrationVerbosity);

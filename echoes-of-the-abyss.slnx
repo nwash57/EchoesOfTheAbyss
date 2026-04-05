@@ -2,7 +2,6 @@
   <Folder Name="/_Solution Items/">
     <File Path="notes.md" />
   </Folder>
-  <Project Path="src\EchoesOfTheAbyss.App\EchoesOfTheAbyss.App.csproj" />
   <Project Path="src\EchoesOfTheAbyss.Lib\EchoesOfTheAbyss.Lib.csproj" />
   <Project Path="src\EchoesOfTheAbyss.Web\EchoesOfTheAbyss.Web.csproj" />
   <Project Path="src\SpectreConsoleTests\SpectreConsoleTests.csproj" />

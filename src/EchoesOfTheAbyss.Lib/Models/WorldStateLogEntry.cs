@@ -4,7 +4,7 @@ namespace EchoesOfTheAbyss.Lib.Models;
 
 public class WorldStateLogEntry : LogEntry
 {
-    public int Difficulty { get; set; }
+    public string Difficulty { get; set; } = string.Empty;
     public ActorDemographics Demographics { get; set; } = new();
     public PlayerStats Stats { get; set; } = new();
     public Dictionary<string, string> Equipment { get; set; } = new();
@@ -17,7 +17,7 @@ public class WorldStateLogEntry : LogEntry
             Timestamp = DateTime.UtcNow,
             SessionId = sessionId,
             Round = round,
-            Difficulty = context.Difficulty,
+            Difficulty = context.Difficulty.ToString(),
             Demographics = context.Player.Demographics,
             Stats = context.Player.Stats,
             Equipment = new Dictionary<string, string>

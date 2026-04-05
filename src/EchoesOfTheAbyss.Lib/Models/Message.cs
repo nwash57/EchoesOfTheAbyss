@@ -1,9 +1,8 @@
 using EchoesOfTheAbyss.Lib.Enums;
-using EchoesOfTheAbyss.Lib.UI;
 
 namespace EchoesOfTheAbyss.Lib.Models;
 
-public class Message : IExpandableSection
+public class Message
 {
 	public MessagerEnum Messager { get; set; }
 	

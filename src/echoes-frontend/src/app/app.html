@@ -7,16 +7,28 @@
       <h1 class="header-title">Echoes of the Abyss</h1>
       <div class="header-ornament">◆</div>
     </div>
-    
+
     <div class="difficulty-control">
-      <label for="difficulty-slider">Difficulty: {{ game.worldContext().difficulty }}</label>
-      <input 
+      <label for="difficulty-slider">Difficulty: {{ DIFFICULTY_LABELS[game.worldContext().difficulty] }}</label>
+      <input
         id="difficulty-slider"
-        type="range" 
-        min="0" 
-        max="100" 
-        [value]="game.worldContext().difficulty"
+        type="range"
+        min="0"
+        max="4"
+        [value]="getDifficultyIndex()"
         (input)="onDifficultyChange($event)"
+      >
+    </div>
+
+    <div class="difficulty-control">
+      <label for="verbosity-slider">Verbosity: {{ VERBOSITY_LABELS[game.worldContext().narrationVerbosity] }}</label>
+      <input
+        id="verbosity-slider"
+        type="range"
+        min="0"
+        max="4"
+        [value]="getVerbosityIndex()"
+        (input)="onVerbosityChange($event)"
       >
     </div>
 

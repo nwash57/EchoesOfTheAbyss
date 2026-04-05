@@ -30,6 +30,54 @@ export interface Location {
   type?: 'landmark' | 'notable' | 'default';
 }
 
+export enum VerbosityLevel {
+  ExtremelyConcise = 'ExtremelyConcise',
+  Concise = 'Concise',
+  Balanced = 'Balanced',
+  Verbose = 'Verbose',
+  ExtremelyVerbose = 'ExtremelyVerbose'
+}
+
+export const VERBOSITY_LABELS: Record<VerbosityLevel, string> = {
+  [VerbosityLevel.ExtremelyConcise]: 'Extremely Concise',
+  [VerbosityLevel.Concise]: 'Concise',
+  [VerbosityLevel.Balanced]: 'Balanced',
+  [VerbosityLevel.Verbose]: 'Verbose',
+  [VerbosityLevel.ExtremelyVerbose]: 'Extremely Verbose'
+};
+
+export const VERBOSITY_STEPS: VerbosityLevel[] = [
+  VerbosityLevel.ExtremelyConcise,
+  VerbosityLevel.Concise,
+  VerbosityLevel.Balanced,
+  VerbosityLevel.Verbose,
+  VerbosityLevel.ExtremelyVerbose
+];
+
+export enum DifficultyLevel {
+  ExtremelyEasy = 'ExtremelyEasy',
+  Easy = 'Easy',
+  Balanced = 'Balanced',
+  Hard = 'Hard',
+  ExtremelyHard = 'ExtremelyHard'
+}
+
+export const DIFFICULTY_LABELS: Record<DifficultyLevel, string> = {
+  [DifficultyLevel.ExtremelyEasy]: 'Extremely Easy',
+  [DifficultyLevel.Easy]: 'Easy',
+  [DifficultyLevel.Balanced]: 'Balanced',
+  [DifficultyLevel.Hard]: 'Hard',
+  [DifficultyLevel.ExtremelyHard]: 'Extremely Hard'
+};
+
+export const DIFFICULTY_STEPS: DifficultyLevel[] = [
+  DifficultyLevel.ExtremelyEasy,
+  DifficultyLevel.Easy,
+  DifficultyLevel.Balanced,
+  DifficultyLevel.Hard,
+  DifficultyLevel.ExtremelyHard
+];
+
 export enum EquipmentSlot {
   Head = 1,
   Torso,
@@ -57,7 +105,8 @@ export interface Equipment {
 }
 
 export interface WorldContext {
-  difficulty: number;
+  difficulty: DifficultyLevel;
+  narrationVerbosity: VerbosityLevel;
   player: Player;
   currentLocation: Location;
   equipment: Equipment;

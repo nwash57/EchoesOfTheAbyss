@@ -1,9 +1,8 @@
 using EchoesOfTheAbyss.Lib.Interfaces;
-using EchoesOfTheAbyss.Lib.UI;
 
 namespace EchoesOfTheAbyss.Lib.Models;
 
-public class Location : ISchemable, IExpandableSection
+public class Location : ISchemable
 {
 	public Coordinates Coordinates { get; set; } = new(0,0);
 	

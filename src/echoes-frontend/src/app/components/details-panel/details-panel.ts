@@ -1,6 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { GameService } from '../../services/game.service';
-import { EquipmentPiece, EquipmentSlot } from '../../models/world-context.model';
+import {
+  DIFFICULTY_LABELS,
+  EquipmentPiece,
+  VERBOSITY_LABELS,
+  VERBOSITY_STEPS,
+  DIFFICULTY_STEPS
+} from '../../models/world-context.model';
 import { MapViewerComponent } from '../map-viewer/map-viewer';
 
 interface SlotMeta {
@@ -54,4 +60,61 @@ export class DetailsPanelComponent {
   protected formatCoords(x: number, y: number): string {
     return `(${x >= 0 ? '+' : ''}${x}, ${y >= 0 ? '+' : ''}${y})`;
   }
+
+  protected get verbosityLabel(): string {
+    return VERBOSITY_LABELS[this.game.worldContext().narrationVerbosity] ?? 'Balanced';
+  }
+
+  protected get verbosityIndex(): number {
+    return VERBOSITY_STEPS.indexOf(this.game.worldContext().narrationVerbosity);
+  }
+
+  protected get difficultyLabel(): string {
+    return DIFFICULTY_LABELS[this.game.worldContext().difficulty] ?? 'Balanced';
+  }
+
+  protected get difficultyIndex(): number {
+    return DIFFICULTY_STEPS.indexOf(this.game.worldContext().difficulty);
+  }
+
+  protected increaseVerbosity(): void {
+    const idx = this.verbosityIndex;
+    if (idx < VERBOSITY_STEPS.length - 1) {
+      this.game.setNarrationVerbosity(VERBOSITY_STEPS[idx + 1]);
+    }
+  }
+
+  protected decreaseVerbosity(): void {
+    const idx = this.verbosityIndex;
+    if (idx > 0) {
+      this.game.setNarrationVerbosity(VERBOSITY_STEPS[idx - 1]);
+    }
+  }
+
+  protected increaseDifficulty(): void {
+    const idx = this.difficultyIndex;
+    if (idx < DIFFICULTY_STEPS.length - 1) {
+      this.game.setDifficulty(DIFFICULTY_STEPS[idx + 1]);
+    }
+  }
+
+  protected decreaseDifficulty(): void {
+    const idx = this.difficultyIndex;
+    if (idx > 0) {
+      this.game.setDifficulty(DIFFICULTY_STEPS[idx - 1]);
+    }
+  }
+
+  protected onKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.decreaseVerbosity();
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.increaseVerbosity();
+    }
+  }
+
+  protected readonly VERBOSITY_STEPS = VERBOSITY_STEPS;
+  protected readonly DIFFICULTY_STEPS = DIFFICULTY_STEPS;
 }

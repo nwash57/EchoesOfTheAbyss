@@ -1,9 +1,10 @@
 import { Injectable, signal } from '@angular/core';
 import { Message, Messager } from '../models/message.model';
-import { WorldContext, Equipment, Player, Location } from '../models/world-context.model';
+import { WorldContext, Equipment, Player, Location, DifficultyLevel, VerbosityLevel } from '../models/world-context.model';
 
 const EMPTY_WORLD: WorldContext = {
-  difficulty: 50,
+  difficulty: DifficultyLevel.Balanced,
+  narrationVerbosity: VerbosityLevel.Balanced,
   player: {
     demographics: { firstName: '', lastName: '', age: 0, occupation: '' },
     stats: { currentHealth: 100, maxHealth: 100, baseArmor: 0, baseStrength: 0 }
@@ -121,8 +122,13 @@ export class GameService {
     this.ws.send(JSON.stringify({ type: 'player_input', text: text.trim() }));
   }
 
-  setDifficulty(value: number): void {
+  setDifficulty(value: DifficultyLevel): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     this.ws.send(JSON.stringify({ type: 'set_difficulty', difficulty: value }));
+  }
+
+  setNarrationVerbosity(value: VerbosityLevel): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    this.ws.send(JSON.stringify({ type: 'set_narration_verbosity', narrationVerbosity: value }));
   }
 }

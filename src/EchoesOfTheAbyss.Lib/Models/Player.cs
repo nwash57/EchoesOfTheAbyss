@@ -1,9 +1,8 @@
 using EchoesOfTheAbyss.Lib.Interfaces;
-using EchoesOfTheAbyss.Lib.UI;
 
 namespace EchoesOfTheAbyss.Lib.Models;
 
-public class Player : ISchemable, IExpandableSection
+public class Player : ISchemable
 {
 	public ActorDemographics Demographics { get; set; } = new();
 	public PlayerStats Stats { get; set; } = new();

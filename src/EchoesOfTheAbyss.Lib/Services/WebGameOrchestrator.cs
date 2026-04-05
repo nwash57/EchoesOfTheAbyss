@@ -1,5 +1,6 @@
 using System.ClientModel;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using EchoesOfTheAbyss.Lib.Configuration;
 using EchoesOfTheAbyss.Lib.Enums;
@@ -13,7 +14,8 @@ public class WebGameOrchestrator
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter() }
     };
 
     private readonly ChatClient _chatClient;
@@ -41,9 +43,16 @@ public class WebGameOrchestrator
         _chatHistory.Add(new UserChatMessage(Prompts.Exposition));
     }
 
-    public void SetDifficulty(int difficulty)
+    public async Task SetDifficulty(DifficultyLevel difficulty, CancellationToken ct = default)
     {
-        _worldContext.Difficulty = Math.Clamp(difficulty, 0, 100);
+        _worldContext.Difficulty = difficulty;
+        await SendJsonAsync(new { Type = "world_update", WorldContext = _worldContext }, ct);
+    }
+
+    public async Task SetNarrationVerbosity(VerbosityLevel verbosity, CancellationToken ct = default)
+    {
+        _worldContext.NarrationVerbosity = verbosity;
+        await SendJsonAsync(new { Type = "world_update", WorldContext = _worldContext }, ct);
     }
 
     public void EnqueuePlayerInput(string text) =>
@@ -54,12 +63,14 @@ public class WebGameOrchestrator
         _sessionId = DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss");
         await _logger.InitializeAsync(_sessionId);
 
+        var lastPlayerInput = string.Empty;
+
         while (!ct.IsCancellationRequested)
         {
             var messages = new List<ChatMessage>();
             messages.Add(new SystemChatMessage($"Current World Context:\n{_worldContext}"));
             messages.AddRange(_chatHistory);
-            
+
             var narration = _chatClient.CompleteChatStreamingAsync(messages, cancellationToken: ct);
             var message = await StreamNarrationAsync(narration, ct);
 
@@ -67,15 +78,16 @@ public class WebGameOrchestrator
 
             await LogNarrationAsync(message.Thoughts, message.Speech, _sessionId, _round);
 
-            _worldContext = await _imaginationPipeline.RunAsync(message.Speech, _worldContext);
-            
+            _worldContext = await _imaginationPipeline.RunAsync(lastPlayerInput, message.Speech, _worldContext);
+
             await LogWorldStateAsync(_worldContext, _sessionId, _round);
 
             await SendJsonAsync(new { Type = "world_update", WorldContext = _worldContext }, ct);
 
             var playerInput = await _playerInputChannel.Reader.ReadAsync(ct);
             _chatHistory.Add(new UserChatMessage(playerInput));
-            
+            lastPlayerInput = playerInput;
+
             _round++;
         }
         
