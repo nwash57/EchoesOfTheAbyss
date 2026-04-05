@@ -1,13 +1,12 @@
 # TODO
 
 ## 1. World State Consistency & LLM Control ("The Guardrails")
-- 1. Agent to determine whether parts of the narration pipeline should execute (Items 1, 15)
-    - Safeguard against losing equipment randomly or "drift" in descriptions (e.g., "shortsword" to "steel sword")
-    - Equipment should only be modified if explicitly requested or narrated as a change
 - 2. Limit player actions based on timeline/grandiosity (Item 13)
     - Prevent skipping plot (e.g., "I wait 12 years")
     - Prevent interacting with items not presented or in possession
 - 3. Fix narrator cliché: remove "rags to riches" phrasing (Item 14)
+- 3. Equipment often ends up in the wrong slot - I cant wear a glove on my head
+- 3. Narrator needs to not reference "second wind" as a game mechanic
 
 ## 2. Core Gameplay Mechanics & Systems
 - 4. Inventory system (Item 2)
@@ -21,7 +20,6 @@
 
 ## 4. UI, UX & Content Polish
 - 11. Debug log viewer (Item 9)
-- 13. Initial Game Setup: Select Verbosity/Difficulty before first narration (Item 11)
 - 14. Adventure log (Item 12)
 
 ---

@@ -106,8 +106,11 @@ public class ImaginationPipeline
         {
             history.Add(new UserChatMessage("""
                 Analyze the narration and extract the player's current equipment.
-                If the narration mentions grabbing, picking up, or using an item (e.g., a "rusted dagger"), ensure it's placed into a hand slot.
-                Maintain existing equipment that is still in possession.
+                
+                CRITICAL:
+                - Maintain all existing equipment that is still in the player's possession.
+                - Only add new equipment if the player EXPLICITLY took it (e.g., "you pick up the dagger").
+                - Do NOT add items that were only mentioned or seen (e.g., "you find a chest with a rusted sword" does NOT mean the sword is now equipped).
                 """));
             var equipmentJson = await CompleteAsync(history, Equipment.JsonSchema, "equipment_context");
             equipment = equipmentJson.FromJson<Equipment>();
@@ -117,13 +120,18 @@ public class ImaginationPipeline
             equipment = current.Equipment;
         }
 
+        var newLog = string.IsNullOrWhiteSpace(eval.LogEntry)
+            ? new List<string>(current.AdventureLog)
+            : new List<string>(current.AdventureLog) { eval.LogEntry };
+
         return (new WorldContext
         {
             Difficulty = current.Difficulty,
             NarrationVerbosity = current.NarrationVerbosity,
             Player = player,
             CurrentLocation = location,
-            Equipment = equipment
+            Equipment = equipment,
+            AdventureLog = newLog
         }, eval);
     }
 

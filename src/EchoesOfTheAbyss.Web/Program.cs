@@ -69,12 +69,16 @@ app.Map("/ws", async context =>
             else if (msg?.Type == "set_difficulty" && msg.Difficulty is not null
                      && Enum.TryParse<DifficultyLevel>(msg.Difficulty, out var difficulty))
             {
-                await orchestrator.SetDifficulty(difficulty);
+                await orchestrator.SetDifficulty(difficulty, cts.Token);
             }
             else if (msg?.Type == "set_narration_verbosity" && msg.NarrationVerbosity is not null
                      && Enum.TryParse<VerbosityLevel>(msg.NarrationVerbosity, out var verbosity))
             {
-                await orchestrator.SetNarrationVerbosity(verbosity);
+                await orchestrator.SetNarrationVerbosity(verbosity, cts.Token);
+            }
+            else if (msg?.Type == "confirm_setup")
+            {
+                orchestrator.ConfirmSetup();
             }
         }
     }

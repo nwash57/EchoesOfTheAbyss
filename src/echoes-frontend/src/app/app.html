@@ -46,15 +46,49 @@
   </main>
 
   <!-- ═══ Start Screen Overlay ═══ -->
-  @if (!game.isConnected()) {
+  @if (!game.isConnected() || game.isRequestingSetup()) {
     <div class="start-overlay">
       <div class="start-card">
         <div class="start-ornament">◆ ◆ ◆</div>
         <h2 class="start-title">Echoes of the Abyss</h2>
-        <p class="start-subtitle">The darkness awaits your descent.</p>
-        <button class="start-button" (click)="game.startGame()">
-          Begin
-        </button>
+
+        @if (!game.isConnected()) {
+          <p class="start-subtitle">The darkness awaits your descent.</p>
+          <button class="start-button" (click)="game.startGame()">
+            Begin
+          </button>
+        } @else {
+          <div class="setup-controls">
+            <div class="setup-control-group">
+              <label for="setup-difficulty">Difficulty: {{ DIFFICULTY_LABELS[game.worldContext().difficulty] }}</label>
+              <input
+                id="setup-difficulty"
+                type="range"
+                min="0"
+                max="4"
+                [value]="getDifficultyIndex()"
+                (input)="onDifficultyChange($event)"
+              >
+            </div>
+
+            <div class="setup-control-group">
+              <label for="setup-verbosity">Verbosity: {{ VERBOSITY_LABELS[game.worldContext().narrationVerbosity] }}</label>
+              <input
+                id="setup-verbosity"
+                type="range"
+                min="0"
+                max="4"
+                [value]="getVerbosityIndex()"
+                (input)="onVerbosityChange($event)"
+              >
+            </div>
+
+            <p class="start-subtitle">Confirm your settings to enter the abyss.</p>
+            <button class="start-button" (click)="confirmSetup()">
+              Enter
+            </button>
+          </div>
+        }
       </div>
     </div>
   }
@@ -175,6 +209,35 @@
     color: oklch(85% 0.02 265);
     margin: 0;
     white-space: pre-wrap;
+  }
+
+  /* Setup Controls */
+  .setup-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+    width: 100%;
+    min-width: 300px;
+  }
+
+  .setup-control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .setup-control-group label {
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.1rem;
+    color: oklch(78% 0.1 75);
+  }
+
+  .setup-control-group input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+    accent-color: oklch(62% 0.14 75);
   }
 
   .restart-button {

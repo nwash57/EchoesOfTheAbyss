@@ -51,4 +51,8 @@ export class App {
   getVerbosityIndex(): number {
     return VERBOSITY_STEPS.indexOf(this.game.worldContext().narrationVerbosity);
   }
+
+  confirmSetup(): void {
+    this.game.confirmSetup();
+  }
 }

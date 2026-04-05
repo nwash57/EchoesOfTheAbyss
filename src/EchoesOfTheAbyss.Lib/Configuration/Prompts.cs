@@ -67,8 +67,10 @@ public static class Prompts
            - Armor or strength changed (equipment donned/removed/broken)
            - A demographic detail was first revealed (name, age, occupation)
 
-        3. updateEquipment = true ONLY if items were gained, lost, dropped, consumed,
-           destroyed, or equipped/unequipped.
+        3. updateEquipment = true ONLY if the player takes an EXPLICIT action to pick up, 
+           equip, drop, or consume an item, or if the narration explicitly states 
+           the player's equipment was changed (e.g., "your sword shatters"). 
+           Finding or seeing an item does NOT trigger an update.
 
         4. healthDelta: Quantify severity as a signed integer (net of armor):
            - No event: 0
@@ -79,6 +81,12 @@ public static class Prompts
            - Lethal hit: -61 or lower (engine clamps to 0)
            - Minor healing: +5 to +15
            - Significant healing: +16 to +30
+
+        5. logEntry: A brief past-tense chronicle entry (one sentence, ≤15 words) of the
+           most significant event this turn. Focus on completed actions and consequences
+           (e.g. "Slew a goblin scout in the dark forest", "Arrived at the ruined watchtower",
+           "Picked up a tarnished dagger from the corpse"). Use an empty string only if
+           nothing at all noteworthy occurred.
 
         When genuinely ambiguous, prefer NOT flagging an update (false/0). The previous
         world state carries forward unchanged for any skipped step.

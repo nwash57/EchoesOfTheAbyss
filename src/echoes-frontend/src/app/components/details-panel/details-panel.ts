@@ -28,6 +28,7 @@ export class DetailsPanelComponent {
   protected locationExpanded = signal(true);
   protected mapExpanded = signal(true);
   protected equipmentExpanded = signal(true);
+  protected logExpanded = signal(true);
 
   protected get slotList(): SlotMeta[] {
     const eq = this.game.worldContext().equipment;

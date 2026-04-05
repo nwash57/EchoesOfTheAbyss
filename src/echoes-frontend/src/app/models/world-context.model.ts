@@ -111,4 +111,5 @@ export interface WorldContext {
   player: Player;
   currentLocation: Location;
   equipment: Equipment;
+  adventureLog: string[];
 }

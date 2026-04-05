@@ -234,6 +234,51 @@
       }
     </section>
 
+    <!-- ── Adventure Log ── -->
+    <section style="border: 1px solid oklch(20% 0.02 265);">
+      <button
+        (click)="logExpanded.set(!logExpanded())"
+        class="w-full flex items-center gap-2 px-3 py-2"
+        style="background: oklch(12% 0.02 265); border: none; cursor: pointer; text-align: left; transition: background 0.15s;"
+        onmouseenter="this.style.background='oklch(14% 0.022 265)'"
+        onmouseleave="this.style.background='oklch(12% 0.02 265)'">
+        <span style="font-family: 'Courier Prime', monospace; font-size: 0.9rem; color: oklch(62% 0.05 265); flex-shrink: 0;">
+          {{ logExpanded() ? '▾' : '▸' }}
+        </span>
+        <span style="font-family: 'Cinzel Decorative', serif; font-size: 0.85rem; letter-spacing: 0.18em; color: oklch(75% 0.14 75); text-transform: uppercase;">
+          Chronicle
+        </span>
+        <div class="flex-1" style="height: 1px; background: oklch(62% 0.14 75 / 0.12);"></div>
+        @if (game.worldContext().adventureLog.length > 0) {
+          <span style="font-family: 'Courier Prime', monospace; font-size: 0.75rem; color: oklch(50% 0.04 265);">
+            {{ game.worldContext().adventureLog.length }}
+          </span>
+        }
+      </button>
+
+      @if (logExpanded()) {
+        <div class="px-4 py-3 flex flex-col gap-0" style="animation: expandFade 0.2s ease-out; max-height: 280px; overflow-y: auto;">
+          @let log = game.worldContext().adventureLog;
+          @if (!log || log.length === 0) {
+            <p style="font-family: 'Crimson Pro', serif; font-size: 1rem; font-style: italic; color: oklch(42% 0.015 265);">
+              Your story has yet to begin...
+            </p>
+          } @else {
+            @for (entry of log; track $index; let i = $index) {
+              <div class="flex items-baseline gap-2 py-1" style="border-bottom: 1px solid oklch(16% 0.018 265);">
+                <span style="font-family: 'Courier Prime', monospace; font-size: 0.72rem; color: oklch(40% 0.04 265); flex-shrink: 0; min-width: 1.5rem; text-align: right;">
+                  {{ i + 1 }}.
+                </span>
+                <span style="font-family: 'Crimson Pro', serif; font-size: 1.05rem; color: oklch(72% 0.02 265); line-height: 1.5;">
+                  {{ entry }}
+                </span>
+              </div>
+            }
+          }
+        </div>
+      }
+    </section>
+
 <!--    &lt;!&ndash; ── Narration Verbosity ── &ndash;&gt;-->
 <!--    <section style="border: 1px solid oklch(20% 0.02 265);">-->
 <!--      <div class="w-full px-3 py-2" style="background: oklch(12% 0.02 265);">-->

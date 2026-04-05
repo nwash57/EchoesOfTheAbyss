@@ -21,6 +21,7 @@ public class WebGameOrchestrator
     private readonly ChatClient _chatClient;
     private readonly Func<string, Task> _send;
     private readonly Channel<string> _playerInputChannel = Channel.CreateUnbounded<string>();
+    private TaskCompletionSource _setupTcs = new();
     private readonly List<ChatMessage> _chatHistory = [];
     private WorldContext _worldContext = new();
     private readonly ImaginationPipeline _imaginationPipeline;
@@ -37,10 +38,6 @@ public class WebGameOrchestrator
         _send = send;
         _logger = logger ?? new SessionLogger();
         _imaginationPipeline = new ImaginationPipeline(_chatClient);
-
-        // Initial setup - these stay in history as system context
-        _chatHistory.Add(new SystemChatMessage(Prompts.Narrator));
-        _chatHistory.Add(new UserChatMessage(Prompts.Exposition));
     }
 
     public async Task SetDifficulty(DifficultyLevel difficulty, CancellationToken ct = default)
@@ -55,6 +52,11 @@ public class WebGameOrchestrator
         await SendJsonAsync(new { Type = "world_update", WorldContext = _worldContext }, ct);
     }
 
+    public void ConfirmSetup()
+    {
+        _setupTcs.TrySetResult();
+    }
+
     public void EnqueuePlayerInput(string text) =>
         _playerInputChannel.Writer.TryWrite(text);
 
@@ -62,6 +64,19 @@ public class WebGameOrchestrator
     {
         _sessionId = DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss");
         await _logger.InitializeAsync(_sessionId);
+
+        // Notify client that we are waiting for initial settings
+        await SendJsonAsync(new { Type = "request_setup" }, ct);
+
+        // Wait for difficulty and verbosity to be set
+        using (ct.Register(() => _setupTcs.TrySetCanceled()))
+        {
+            await _setupTcs.Task;
+        }
+
+        // Initial setup - these stay in history as system context
+        _chatHistory.Add(new SystemChatMessage(Prompts.Narrator));
+        _chatHistory.Add(new UserChatMessage(Prompts.Exposition));
 
         var lastPlayerInput = string.Empty;
 
@@ -129,13 +144,23 @@ public class WebGameOrchestrator
         _chatHistory.Clear();
         _worldContext = new WorldContext();
         _round = 0;
-        _chatHistory.Add(new SystemChatMessage(Prompts.Narrator));
-        _chatHistory.Add(new UserChatMessage(Prompts.Exposition));
         
         _sessionId = DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss") + "_restart";
         await _logger.InitializeAsync(_sessionId);
 
         await SendJsonAsync(new { Type = "restart_confirmed" }, ct);
+        await SendJsonAsync(new { Type = "request_setup" }, ct);
+        
+        // Wait for setup again on restart
+        _setupTcs = new TaskCompletionSource();
+        using (ct.Register(() => _setupTcs.TrySetCanceled()))
+        {
+            await _setupTcs.Task;
+        }
+
+        _chatHistory.Add(new SystemChatMessage(Prompts.Narrator));
+        _chatHistory.Add(new UserChatMessage(Prompts.Exposition));
+
         await SendJsonAsync(new { Type = "world_update", WorldContext = _worldContext }, ct);
     }
 

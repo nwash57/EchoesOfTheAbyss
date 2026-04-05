@@ -23,7 +23,8 @@ const EMPTY_WORLD: WorldContext = {
     feet: null,
     rightHand: null,
     leftHand: null
-  }
+  },
+  adventureLog: []
 };
 
 @Injectable({ providedIn: 'root' })
@@ -34,6 +35,7 @@ export class GameService {
   private _isThinking = signal<boolean>(false);
   private _isConnected = signal<boolean>(false);
   private _isGameOver = signal<boolean>(false);
+  private _isRequestingSetup = signal<boolean>(false);
   private _storySummary = signal<string>('');
 
   private _isPlayerUpdating = signal<boolean>(false);
@@ -46,6 +48,7 @@ export class GameService {
   readonly isThinking = this._isThinking.asReadonly();
   readonly isConnected = this._isConnected.asReadonly();
   readonly isGameOver = this._isGameOver.asReadonly();
+  readonly isRequestingSetup = this._isRequestingSetup.asReadonly();
   readonly storySummary = this._storySummary.asReadonly();
 
   readonly isPlayerUpdating = this._isPlayerUpdating.asReadonly();
@@ -92,6 +95,7 @@ export class GameService {
         };
         this._messages.update(msgs => [...msgs, message]);
         this._isThinking.set(false);
+        this._isRequestingSetup.set(false);
         break;
       }
       case 'world_update': {
@@ -113,6 +117,11 @@ export class GameService {
       case 'game_over': {
         this._storySummary.set(msg['summary'] as string);
         this._isGameOver.set(true);
+        this._isThinking.set(false);
+        break;
+      }
+      case 'request_setup': {
+        this._isRequestingSetup.set(true);
         this._isThinking.set(false);
         break;
       }
@@ -158,11 +167,13 @@ export class GameService {
   }
 
   setDifficulty(value: DifficultyLevel): void {
+    this._worldContext.update(ctx => ({ ...ctx, difficulty: value }));
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     this.ws.send(JSON.stringify({ type: 'set_difficulty', difficulty: value }));
   }
 
   setNarrationVerbosity(value: VerbosityLevel): void {
+    this._worldContext.update(ctx => ({ ...ctx, narrationVerbosity: value }));
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     this.ws.send(JSON.stringify({ type: 'set_narration_verbosity', narrationVerbosity: value }));
   }
@@ -170,5 +181,10 @@ export class GameService {
   restartGame(): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     this.ws.send(JSON.stringify({ type: 'restart_game' }));
+  }
+
+  confirmSetup(): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    this.ws.send(JSON.stringify({ type: 'confirm_setup' }));
   }
 }

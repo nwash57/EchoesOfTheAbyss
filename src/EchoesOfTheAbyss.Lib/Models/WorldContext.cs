@@ -13,14 +13,20 @@ public class WorldContext
 
 	public Location CurrentLocation { get; set; } = new();
 
+	public List<string> AdventureLog { get; set; } = [];
+
 	public override string ToString()
 	{
+		var recentLog = AdventureLog.Count > 0
+			? $"\nRecent events:\n{string.Join("\n", AdventureLog.TakeLast(8).Select((e, i) => $"  {AdventureLog.Count - Math.Min(8, AdventureLog.Count) + i + 1}. {e}"))}"
+			: "";
+
 		return $$"""
 				 Difficulty: {{DifficultyGuidance(Difficulty)}}
 				 Narration Verbosity: {{VerbosityGuidance(NarrationVerbosity)}}
 				 {{CurrentLocation}}.
 				 {{Player}}.
-				 {{Equipment}}.
+				 {{Equipment}}.{{recentLog}}
 				 """;
 	}
 
