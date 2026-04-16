@@ -1,0 +1,25 @@
+<section style="border: 1px solid oklch(20% 0.02 265);">
+  <button
+    (click)="toggle()"
+    class="w-full flex items-center gap-2 px-3 py-2"
+    style="background: oklch(12% 0.02 265); border: none; cursor: pointer; text-align: left; transition: background 0.15s;"
+    onmouseenter="this.style.background='oklch(14% 0.022 265)'"
+    onmouseleave="this.style.background='oklch(12% 0.02 265)'">
+    <span style="font-family: 'Courier Prime', monospace; font-size: 0.9rem; color: oklch(62% 0.05 265); flex-shrink: 0;">
+      {{ expanded() ? '▾' : '▸' }}
+    </span>
+    <span style="font-family: 'Cinzel Decorative', serif; font-size: 0.85rem; letter-spacing: 0.18em; color: oklch(75% 0.14 75); text-transform: uppercase;">
+      {{ title() }}
+    </span>
+    <div class="flex-1" style="height: 1px; background: oklch(62% 0.14 75 / 0.12);"></div>
+    @if (badge()) {
+      <span style="font-family: 'Courier Prime', monospace; font-size: 0.75rem; color: oklch(50% 0.04 265);">
+        {{ badge() }}
+      </span>
+    }
+  </button>
+
+  @if (expanded()) {
+    <ng-content />
+  }
+</section>

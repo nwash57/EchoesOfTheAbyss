@@ -1,6 +1,7 @@
 export enum Messager {
   Narrator = 'Narrator',
-  Player = 'Player'
+  Player = 'Player',
+  System = 'System'
 }
 
 export interface Message {

@@ -118,3 +118,51 @@
   height: 100%;
   min-height: 0;
 }
+
+/* ─── Debug Toggle ─── */
+
+.debug-toggle {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.85rem;
+  color: oklch(50% 0.06 200);
+  background: none;
+  border: 1px solid oklch(50% 0.06 200 / 0.3);
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 2px;
+  margin-top: 0.5rem;
+}
+
+.debug-toggle:hover {
+  color: oklch(65% 0.1 200);
+  border-color: oklch(65% 0.1 200 / 0.5);
+  background: oklch(65% 0.1 200 / 0.06);
+}
+
+.debug-toggle-active {
+  color: oklch(65% 0.12 200);
+  border-color: oklch(65% 0.12 200 / 0.6);
+  background: oklch(65% 0.12 200 / 0.08);
+}
+
+/* ─── Debug Drawer ─── */
+
+.debug-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  z-index: 50;
+  background: oklch(8% 0.018 265);
+  border-left: 1px solid oklch(30% 0.08 200 / 0.4);
+  overflow-y: auto;
+  animation: debugSlideIn 0.2s ease-out;
+  box-shadow: -4px 0 20px oklch(0% 0 0 / 0.4);
+}
+
+@keyframes debugSlideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}

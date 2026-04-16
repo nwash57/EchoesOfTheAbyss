@@ -1,6 +1,8 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { Message, Messager } from '../models/message.model';
 import { WorldContext, Equipment, Player, Location, DifficultyLevel, VerbosityLevel } from '../models/world-context.model';
+import { ServerMessage, DebugStateMessage } from '../models/server-messages';
+import { WebSocketService } from './websocket.service';
 
 const EMPTY_WORLD: WorldContext = {
   difficulty: DifficultyLevel.Balanced,
@@ -29,11 +31,12 @@ const EMPTY_WORLD: WorldContext = {
 
 @Injectable({ providedIn: 'root' })
 export class GameService {
+  private readonly ws = inject(WebSocketService);
+
   private _messages = signal<Message[]>([]);
   private _worldContext = signal<WorldContext>(EMPTY_WORLD);
   private _knownLocations = signal<Location[]>([]);
   private _isThinking = signal<boolean>(false);
-  private _isConnected = signal<boolean>(false);
   private _isGameOver = signal<boolean>(false);
   private _isRequestingSetup = signal<boolean>(false);
   private _storySummary = signal<string>('');
@@ -42,11 +45,17 @@ export class GameService {
   private _isLocationUpdating = signal<boolean>(false);
   private _isEquipmentUpdating = signal<boolean>(false);
 
+  private _debugState = signal<DebugStateMessage | null>(null);
+
+  private _expositionText = signal<string | null>(null);
+  private _expositionId = signal<string>('');
+  private _expositionThoughts = signal<string[]>([]);
+
   readonly messages = this._messages.asReadonly();
   readonly worldContext = this._worldContext.asReadonly();
   readonly knownLocations = this._knownLocations.asReadonly();
   readonly isThinking = this._isThinking.asReadonly();
-  readonly isConnected = this._isConnected.asReadonly();
+  readonly isConnected = this.ws.isConnected;
   readonly isGameOver = this._isGameOver.asReadonly();
   readonly isRequestingSetup = this._isRequestingSetup.asReadonly();
   readonly storySummary = this._storySummary.asReadonly();
@@ -55,72 +64,69 @@ export class GameService {
   readonly isLocationUpdating = this._isLocationUpdating.asReadonly();
   readonly isEquipmentUpdating = this._isEquipmentUpdating.asReadonly();
 
-  private ws: WebSocket | null = null;
+  readonly debugState = this._debugState.asReadonly();
+
+  readonly expositionText = this._expositionText.asReadonly();
+  readonly isShowingPrologue = computed(() => this._expositionText() !== null);
+
+  constructor() {
+    this.ws.onMessage((msg) => this.handleServerMessage(msg));
+  }
 
   startGame(): void {
-    this.connect();
+    this.ws.connect();
+    this._isThinking.set(true);
   }
 
-  private connect(): void {
-    this.ws = new WebSocket('ws://localhost:5000/ws');
-
-    this.ws.onopen = () => {
-      this._isConnected.set(true);
-      this._isThinking.set(true);
-    };
-
-    this.ws.onmessage = (event: MessageEvent) => {
-      const msg = JSON.parse(event.data as string);
-      this.handleServerMessage(msg);
-    };
-
-    this.ws.onclose = () => {
-      this._isConnected.set(false);
-    };
-
-    this.ws.onerror = () => {
-      this._isConnected.set(false);
-    };
-  }
-
-  private handleServerMessage(msg: Record<string, unknown>): void {
-    switch (msg['type']) {
+  handleServerMessage(msg: ServerMessage): void {
+    switch (msg.type) {
+      case 'exposition_complete': {
+        this._expositionText.set(msg.speech);
+        this._expositionId.set(msg.id);
+        this._expositionThoughts.set(msg.thoughts ?? []);
+        this._isThinking.set(false);
+        break;
+      }
       case 'narrator_complete': {
         const message: Message = {
-          id: msg['id'] as string,
+          id: msg.id,
           messager: Messager.Narrator,
-          speech: msg['speech'] as string,
-          thoughts: (msg['thoughts'] as string[]) ?? [],
+          speech: msg.speech,
+          thoughts: msg.thoughts ?? [],
           isExpanded: false
         };
         this._messages.update(msgs => [...msgs, message]);
         this._isThinking.set(false);
-        this._isRequestingSetup.set(false);
         break;
       }
       case 'world_update': {
-        const context = msg['worldContext'] as WorldContext;
-        this._worldContext.set(context);
-        this.addLocationIfNew(context.currentLocation);
+        this._worldContext.set(msg.worldContext);
+        this.addLocationIfNew(msg.worldContext.currentLocation);
         this._isPlayerUpdating.set(false);
         this._isLocationUpdating.set(false);
         this._isEquipmentUpdating.set(false);
         break;
       }
       case 'imagination_starting': {
-        const evalData = msg['eval'] as { updatePlayer: boolean, updateLocation: boolean, updateEquipment: boolean };
-        this._isPlayerUpdating.set(evalData.updatePlayer);
-        this._isLocationUpdating.set(evalData.updateLocation);
-        this._isEquipmentUpdating.set(evalData.updateEquipment);
+        this._isPlayerUpdating.set(true);
+        this._isLocationUpdating.set(true);
+        this._isEquipmentUpdating.set(true);
         break;
       }
       case 'game_over': {
-        this._storySummary.set(msg['summary'] as string);
+        this._storySummary.set(msg.summary);
         this._isGameOver.set(true);
         this._isThinking.set(false);
         break;
       }
       case 'request_setup': {
+        this._messages.set([]);
+        this._knownLocations.set([]);
+        this._worldContext.set(EMPTY_WORLD);
+        this._isGameOver.set(false);
+        this._storySummary.set('');
+        this._expositionText.set(null);
+        this._debugState.set(null);
         this._isRequestingSetup.set(true);
         this._isThinking.set(false);
         break;
@@ -130,6 +136,29 @@ export class GameService {
         this._knownLocations.set([]);
         this._isGameOver.set(false);
         this._storySummary.set('');
+        this._expositionText.set(null);
+        this._debugState.set(null);
+        break;
+      }
+      case 'input_rejected': {
+        const rejectionMsg: Message = {
+          id: Date.now().toString(),
+          messager: Messager.System,
+          speech: msg.message ?? 'That action is not allowed.',
+          thoughts: [],
+          isExpanded: false
+        };
+        this._messages.update(msgs => [...msgs, rejectionMsg]);
+        this._isThinking.set(false);
+        break;
+      }
+      case 'rule_violations': {
+        // State corrections are silent — logged for debugging but not shown to player
+        console.log('[Rules Engine]', msg.violations);
+        break;
+      }
+      case 'debug_state': {
+        this._debugState.set(msg);
         break;
       }
     }
@@ -151,7 +180,7 @@ export class GameService {
   }
 
   submitMessage(text: string): void {
-    if (!text.trim() || !this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    if (!text.trim() || !this.ws.connected) return;
 
     const playerMsg: Message = {
       id: Date.now().toString(),
@@ -163,28 +192,46 @@ export class GameService {
 
     this._messages.update(msgs => [...msgs, playerMsg]);
     this._isThinking.set(true);
-    this.ws.send(JSON.stringify({ type: 'player_input', text: text.trim() }));
+    this.ws.send({ type: 'player_input', text: text.trim() });
   }
 
   setDifficulty(value: DifficultyLevel): void {
     this._worldContext.update(ctx => ({ ...ctx, difficulty: value }));
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-    this.ws.send(JSON.stringify({ type: 'set_difficulty', difficulty: value }));
+    this.ws.send({ type: 'set_difficulty', difficulty: value });
   }
 
   setNarrationVerbosity(value: VerbosityLevel): void {
     this._worldContext.update(ctx => ({ ...ctx, narrationVerbosity: value }));
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-    this.ws.send(JSON.stringify({ type: 'set_narration_verbosity', narrationVerbosity: value }));
+    this.ws.send({ type: 'set_narration_verbosity', narrationVerbosity: value });
   }
 
   restartGame(): void {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-    this.ws.send(JSON.stringify({ type: 'restart_game' }));
+    this.ws.send({ type: 'restart_game' });
+  }
+
+  dismissPrologue(): void {
+    const text = this._expositionText();
+    if (!text) return;
+
+    const message: Message = {
+      id: this._expositionId(),
+      messager: Messager.Narrator,
+      speech: text,
+      thoughts: this._expositionThoughts(),
+      isExpanded: false
+    };
+    this._messages.update(msgs => [...msgs, message]);
+    this._expositionText.set(null);
   }
 
   confirmSetup(): void {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-    this.ws.send(JSON.stringify({ type: 'confirm_setup' }));
+    const ctx = this._worldContext();
+    this.ws.send({
+      type: 'confirm_setup',
+      difficulty: ctx.difficulty,
+      narrationVerbosity: ctx.narrationVerbosity
+    });
+    this._isRequestingSetup.set(false);
+    this._isThinking.set(true);
   }
 }

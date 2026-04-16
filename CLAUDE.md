@@ -19,7 +19,7 @@ dotnet run --project src/EchoesOfTheAbyss.App/EchoesOfTheAbyss.App.csproj
 dotnet test SpectreConsoleTests/
 ```
 
-The app requires a local LLM server running at `http://localhost:1234/v1` (LM Studio or compatible OpenAI-API server). The default model is `deepseek-r1-distill-qwen-14b`, configured in `src/EchoesOfTheAbyss.Lib/Configuration/LlmModels.cs`.
+The app requires a local LLM server running at `http://localhost:1234/v1` (LM Studio or compatible OpenAI-API server). The default model is `deepseek-r1-distill-qwen-14b`, configured in `src/EchoesOfTheAbyss.Lib/Llm/LlmModels.cs`.
 
 ## Architecture
 
@@ -54,16 +54,31 @@ Two-panel Spectre.Console layout (60/40 split):
 
 Keyboard: `↑`/`↓` scroll, `←`/`→` expand/collapse, `Tab` switch panels, `Enter` submit input.
 
+### Project Structure (EchoesOfTheAbyss.Lib)
+
+Domain-based folder organization:
+
+| Domain | Contents |
+|---|---|
+| `Player/` | Player model, PlayerStateUpdater |
+| `Equipment/` | Equipment model, EquipmentExtractor |
+| `Location/` | Location/Coordinates models, LocationExtractor |
+| `Narrative/` | Message, NarrativeEvaluation, NarrativeEvaluator, MessagerEnum |
+| `Imagination/` | WorldContext, ImaginationPipeline |
+| `Game/` | WebGameOrchestrator, IClientConnection |
+| `Llm/` | OpenAiChatService, LlmConfig, LlmModels, Prompts |
+| `Logging/` | SessionLogger, LogEntry models |
+| `Shared/` | DifficultyLevel, VerbosityLevel, ISchemable, extensions |
+
 ### Key Files
 
 | Purpose | Path |
 |---|---|
-| Entry point | `src/EchoesOfTheAbyss.App/Program.cs` |
-| Main game loop | `src/EchoesOfTheAbyss.Lib/Services/GameOrchestrator.cs` |
-| World state model | `src/EchoesOfTheAbyss.Lib/Models/WorldContext.cs` |
-| LLM system prompts | `src/EchoesOfTheAbyss.Lib/Configuration/Prompts.cs` |
-| Available models | `src/EchoesOfTheAbyss.Lib/Configuration/LlmModels.cs` |
-| UI orchestration | `src/EchoesOfTheAbyss.Lib/UI/UiManager.cs` |
+| Web entry point | `src/EchoesOfTheAbyss.Web/Program.cs` |
+| Main game loop | `src/EchoesOfTheAbyss.Lib/Game/WebGameOrchestrator.cs` |
+| World state model | `src/EchoesOfTheAbyss.Lib/Imagination/WorldContext.cs` |
+| LLM system prompts | `src/EchoesOfTheAbyss.Lib/Llm/Prompts.cs` |
+| Available models | `src/EchoesOfTheAbyss.Lib/Llm/LlmModels.cs` |
 
 ### Build Notes
 

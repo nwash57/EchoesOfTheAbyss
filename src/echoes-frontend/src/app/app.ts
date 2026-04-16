@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ConversationPanelComponent } from './components/conversation-panel/conversation-panel';
 import { DetailsPanelComponent } from './components/details-panel/details-panel';
+import { DebugDrawerComponent } from './components/debug-drawer/debug-drawer';
 import { GameService } from './services/game.service';
 import {
   DifficultyLevel,
@@ -14,12 +15,13 @@ import {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [ConversationPanelComponent, DetailsPanelComponent],
+  imports: [ConversationPanelComponent, DetailsPanelComponent, DebugDrawerComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
   protected game = inject(GameService);
+  protected debugOpen = signal(false);
 
   protected readonly DIFFICULTY_STEPS = DIFFICULTY_STEPS;
   protected readonly VERBOSITY_STEPS = VERBOSITY_STEPS;
@@ -54,5 +56,9 @@ export class App {
 
   confirmSetup(): void {
     this.game.confirmSetup();
+  }
+
+  toggleDebug(): void {
+    this.debugOpen.set(!this.debugOpen());
   }
 }

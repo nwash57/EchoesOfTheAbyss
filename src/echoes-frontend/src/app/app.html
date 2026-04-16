@@ -32,6 +32,10 @@
       >
     </div>
 
+    <button class="debug-toggle" (click)="toggleDebug()" [class.debug-toggle-active]="debugOpen()" title="Debug Panel">
+      {{ '{' }} {{ '}' }}
+    </button>
+
     <div class="header-rule"></div>
   </header>
 
@@ -44,6 +48,22 @@
       <app-details-panel />
     </div>
   </main>
+
+  <!-- ═══ Prologue Overlay ═══ -->
+  @if (game.isShowingPrologue()) {
+    <div class="prologue-overlay">
+      <div class="prologue-card">
+        <div class="prologue-ornament">◆</div>
+        <h2 class="prologue-title">Prologue</h2>
+        <div class="prologue-rule"></div>
+        <p class="prologue-text">{{ game.expositionText() }}</p>
+        <div class="prologue-rule"></div>
+        <button class="prologue-button" (click)="game.dismissPrologue()">
+          Enter the world
+        </button>
+      </div>
+    </div>
+  }
 
   <!-- ═══ Start Screen Overlay ═══ -->
   @if (!game.isConnected() || game.isRequestingSetup()) {
@@ -90,6 +110,13 @@
           </div>
         }
       </div>
+    </div>
+  }
+
+  <!-- ═══ Debug Drawer ═══ -->
+  @if (debugOpen()) {
+    <div class="debug-drawer">
+      <app-debug-drawer [debugState]="game.debugState()" />
     </div>
   }
 
@@ -252,6 +279,108 @@
   }
 
   @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* ─── Prologue Overlay ─── */
+
+  .prologue-overlay {
+    position: fixed;
+    inset: 0;
+    background: oklch(5% 0.015 265 / 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    animation: fadeIn 0.8s ease-out;
+  }
+
+  .prologue-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 3rem 3.5rem;
+    border: 1px solid oklch(30% 0.06 75 / 0.4);
+    background: oklch(9% 0.018 265);
+    max-width: 550px;
+    width: 90%;
+    animation: prologueFadeUp 1s ease-out 0.3s both;
+  }
+
+  .prologue-ornament {
+    font-size: 0.7rem;
+    color: oklch(45% 0.1 75 / 0.6);
+  }
+
+  .prologue-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.15em;
+    color: oklch(78% 0.1 75);
+    font-weight: 400;
+    margin: 0;
+    text-shadow: 0 0 30px oklch(62% 0.14 75 / 0.15);
+  }
+
+  .prologue-rule {
+    height: 1px;
+    width: 80%;
+    background: linear-gradient(
+      to right,
+      transparent,
+      oklch(45% 0.1 75 / 0.4) 20%,
+      oklch(55% 0.12 75 / 0.6) 50%,
+      oklch(45% 0.1 75 / 0.4) 80%,
+      transparent
+    );
+  }
+
+  .prologue-text {
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.15rem;
+    line-height: 1.85;
+    color: oklch(88% 0.025 80);
+    margin: 0;
+    text-align: left;
+    animation: prologueTextFade 1.2s ease-out 0.8s both;
+  }
+
+  .prologue-button {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: oklch(62% 0.14 75);
+    background: none;
+    border: 1px solid oklch(62% 0.14 75 / 0.4);
+    padding: 0.75rem 2.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+    animation: prologueTextFade 0.8s ease-out 1.5s both;
+  }
+
+  .prologue-button:hover {
+    border-color: oklch(62% 0.14 75);
+    background: oklch(62% 0.14 75 / 0.08);
+    color: oklch(78% 0.12 75);
+  }
+
+  @keyframes prologueFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes prologueTextFade {
     from { opacity: 0; }
     to { opacity: 1; }
   }

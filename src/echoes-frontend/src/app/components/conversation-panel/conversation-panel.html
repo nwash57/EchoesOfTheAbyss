@@ -53,6 +53,14 @@
           }
         </div>
 
+      } @else if (message.messager === Messager.System) {
+        <!-- System message (rule rejection) -->
+        <div style="animation: fadeIn 0.3s ease-out; text-align: center;">
+          <p style="font-family: 'Courier Prime', monospace; font-size: 0.85rem; font-style: italic; color: oklch(65% 0.12 30); line-height: 1.6;">
+            {{ message.speech }}
+          </p>
+        </div>
+
       } @else {
         <!-- Player message -->
         <div style="display: flex; justify-content: flex-end; animation: fadeIn 0.3s ease-out;">

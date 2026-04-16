@@ -10,5 +10,8 @@ debug/
 .claude/
 .jetclient/
 .vscode/
+playtests/
 
 nul
+
+.playwright-mcp/

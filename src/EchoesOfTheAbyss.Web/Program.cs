@@ -1,12 +1,22 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using EchoesOfTheAbyss.Lib.Configuration;
-using EchoesOfTheAbyss.Lib.Enums;
-using EchoesOfTheAbyss.Lib.Models;
-using EchoesOfTheAbyss.Lib.Services;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using EchoesOfTheAbyss.Lib.Game;
+using EchoesOfTheAbyss.Lib.Llm;
+using EchoesOfTheAbyss.Lib.Shared;
+using EchoesOfTheAbyss.Web;
+
+var llmConfig = new LlmConfig("http://localhost", 1234, LlmModels.Qwen3_5__9B__Q8);
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+builder.Host.ConfigureContainer<ContainerBuilder>(container =>
+{
+    container.RegisterModule(new GameModule(llmConfig));
+});
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
@@ -17,6 +27,57 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 app.UseCors();
 app.UseWebSockets();
+
+// Log access API — resolves current session via debug/latest-session pointer file
+string ResolveDebugPath(IConfiguration config)
+{
+    var debugPath = config["DebugPath"];
+    if (string.IsNullOrEmpty(debugPath))
+    {
+        var projectRoot = Directory.GetParent(AppContext.BaseDirectory)?.Parent?.Parent?.Parent?.FullName
+                          ?? AppContext.BaseDirectory;
+        debugPath = Path.Combine(projectRoot, "debug");
+    }
+    return debugPath;
+}
+
+app.MapGet("/api/logs/current", (IConfiguration config) =>
+{
+    var debugPath = ResolveDebugPath(config);
+    var latestFile = Path.Combine(debugPath, "latest-session");
+    if (!File.Exists(latestFile))
+        return Results.NotFound(new { error = "No active session" });
+
+    var sessionPath = File.ReadAllText(latestFile).Trim();
+    if (!Directory.Exists(sessionPath))
+        return Results.NotFound(new { error = "Session directory not found" });
+
+    var sessionId = Path.GetFileName(sessionPath);
+    var files = Directory.GetFiles(sessionPath).Select(Path.GetFileName).ToArray();
+
+    return Results.Ok(new { sessionId, sessionPath, files });
+});
+
+app.MapGet("/api/logs/current/{filename}", (string filename, IConfiguration config) =>
+{
+    // Prevent path traversal
+    if (filename.Contains("..") || filename.Contains('/') || filename.Contains('\\'))
+        return Results.BadRequest(new { error = "Invalid filename" });
+
+    var debugPath = ResolveDebugPath(config);
+    var latestFile = Path.Combine(debugPath, "latest-session");
+    if (!File.Exists(latestFile))
+        return Results.NotFound(new { error = "No active session" });
+
+    var sessionPath = File.ReadAllText(latestFile).Trim();
+    var filePath = Path.Combine(sessionPath, filename);
+
+    if (!File.Exists(filePath))
+        return Results.NotFound(new { error = $"File '{filename}' not found" });
+
+    var content = File.ReadAllText(filePath);
+    return Results.Text(content, "application/x-ndjson");
+});
 
 app.Map("/ws", async context =>
 {
@@ -29,14 +90,11 @@ app.Map("/ws", async context =>
     var ws = await context.WebSockets.AcceptWebSocketAsync();
     using var cts = new CancellationTokenSource();
 
-    async Task Send(string json)
-    {
-        var bytes = Encoding.UTF8.GetBytes(json);
-        await ws.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
-    }
+    var lifetimeScope = context.RequestServices.GetRequiredService<ILifetimeScope>();
+    await using var connectionScope = lifetimeScope.BeginLifetimeScope();
 
-    var config = new LlmConfig("http://localhost", 1234, LlmModels.Qwen3_5__9B__Q8);
-    var orchestrator = new WebGameOrchestrator(config, Send);
+    var orchestrator = connectionScope.Resolve<WebGameOrchestrator>();
+    orchestrator.SetConnection(new WebSocketClientConnection(ws));
 
     var gameTask = orchestrator.RunAsync(cts.Token);
 
@@ -78,7 +136,9 @@ app.Map("/ws", async context =>
             }
             else if (msg?.Type == "confirm_setup")
             {
-                orchestrator.ConfirmSetup();
+                DifficultyLevel? diff = msg.Difficulty is not null && Enum.TryParse<DifficultyLevel>(msg.Difficulty, out var d) ? d : null;
+                VerbosityLevel? verb = msg.NarrationVerbosity is not null && Enum.TryParse<VerbosityLevel>(msg.NarrationVerbosity, out var v) ? v : null;
+                orchestrator.ConfirmSetup(diff, verb);
             }
         }
     }
@@ -93,3 +153,5 @@ app.Map("/ws", async context =>
 app.Run("http://localhost:5000");
 
 record WsClientMessage(string Type, string? Text, string? Difficulty, string? NarrationVerbosity);
+
+public partial class Program { }

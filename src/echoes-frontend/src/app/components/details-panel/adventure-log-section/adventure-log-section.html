@@ -1,0 +1,18 @@
+<div class="px-4 py-3 flex flex-col gap-0" style="animation: expandFade 0.2s ease-out; max-height: 280px; overflow-y: auto;">
+  @if (!log() || log().length === 0) {
+    <p style="font-family: 'Crimson Pro', serif; font-size: 1rem; font-style: italic; color: oklch(42% 0.015 265);">
+      Your story has yet to begin...
+    </p>
+  } @else {
+    @for (entry of log(); track $index; let i = $index) {
+      <div class="flex items-baseline gap-2 py-1" style="border-bottom: 1px solid oklch(16% 0.018 265);">
+        <span style="font-family: 'Courier Prime', monospace; font-size: 0.72rem; color: oklch(40% 0.04 265); flex-shrink: 0; min-width: 1.5rem; text-align: right;">
+          {{ i + 1 }}.
+        </span>
+        <span style="font-family: 'Crimson Pro', serif; font-size: 1.05rem; color: oklch(72% 0.02 265); line-height: 1.5;">
+          {{ entry }}
+        </span>
+      </div>
+    }
+  }
+</div>

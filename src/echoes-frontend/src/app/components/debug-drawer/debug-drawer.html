@@ -1,0 +1,386 @@
+<div class="debug-header">
+  <span class="debug-label">DEBUG</span>
+  <span class="debug-round">Round {{ round() }}</span>
+</div>
+
+@if (!debugState()) {
+  <div class="debug-empty">Waiting for game data...</div>
+} @else {
+
+  <!-- ═══ Plot Arc ═══ -->
+  <app-accordion-section title="Plot Arc">
+    @if (plotArc(); as arc) {
+      <div class="section-body">
+
+        <div class="field">
+          <span class="field-label">Backstory</span>
+          <span class="field-value narrative">{{ arc.backstory }}</span>
+        </div>
+
+        <div class="field">
+          <span class="field-label">NPCs</span>
+          <span class="field-value">{{ arc.establishedNpcs }}</span>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Locations</span>
+          <span class="field-value">{{ arc.establishedLocations }}</span>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Items</span>
+          <span class="field-value">{{ arc.establishedItems }}</span>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Current Objective</span>
+          <span class="field-value objective">{{ arc.currentObjective }}</span>
+        </div>
+
+        <!-- Plot Point Stepper -->
+        <div class="stepper">
+          <span class="field-label">Plot Points</span>
+          @for (point of arc.plotPoints; track $index; let i = $index) {
+            <div class="step">
+              <div class="step-track">
+                <div class="step-dot"
+                  [style.background]="i < arc.currentPlotPointIndex
+                    ? 'oklch(55% 0.12 145)'
+                    : i === arc.currentPlotPointIndex
+                      ? 'oklch(72% 0.14 75)'
+                      : 'oklch(25% 0.02 265)'"
+                  [style.box-shadow]="i === arc.currentPlotPointIndex
+                    ? '0 0 6px oklch(72% 0.14 75 / 0.5)'
+                    : 'none'">
+                </div>
+                @if (i < arc.plotPoints.length - 1) {
+                  <div class="step-line"
+                    [style.background]="i < arc.currentPlotPointIndex
+                      ? 'oklch(55% 0.12 145 / 0.4)'
+                      : 'oklch(20% 0.02 265)'">
+                  </div>
+                }
+              </div>
+              <span class="step-text"
+                [style.color]="i < arc.currentPlotPointIndex
+                  ? 'oklch(50% 0.04 145)'
+                  : i === arc.currentPlotPointIndex
+                    ? 'oklch(85% 0.08 75)'
+                    : 'oklch(45% 0.02 265)'">
+                {{ point }}
+              </span>
+            </div>
+          }
+          <!-- Climax as final step -->
+          <div class="step">
+            <div class="step-track">
+              <div class="step-dot climax-dot"
+                [style.background]="arc.currentPlotPointIndex >= arc.plotPoints.length
+                  ? 'oklch(72% 0.14 75)'
+                  : 'oklch(25% 0.02 265)'"
+                [style.box-shadow]="arc.currentPlotPointIndex >= arc.plotPoints.length
+                  ? '0 0 6px oklch(72% 0.14 75 / 0.5)'
+                  : 'none'">
+              </div>
+            </div>
+            <span class="step-text climax-text"
+              [style.color]="arc.currentPlotPointIndex >= arc.plotPoints.length
+                ? 'oklch(85% 0.08 75)'
+                : 'oklch(45% 0.02 265)'">
+              {{ arc.climax }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+    } @else {
+      <div class="debug-empty">No plot arc generated yet</div>
+    }
+  </app-accordion-section>
+
+  <!-- ═══ Drift Tracker ═══ -->
+  <app-accordion-section title="Drift Tracker">
+    <div class="section-body">
+
+      @if (evaluation(); as eval) {
+        <div class="field">
+          <span class="field-label">Alignment</span>
+          <span class="alignment-badge" [style.color]="alignmentColor(eval.plotAlignment)"
+            [style.border-color]="alignmentColor(eval.plotAlignment)">
+            {{ eval.plotAlignment }}
+          </span>
+        </div>
+      }
+
+      @if (tracker(); as t) {
+        <div class="field">
+          <span class="field-label">On-Track Streak</span>
+          <span class="field-value mono">{{ t.consecutiveOnTrack }} / 2</span>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Drift Score</span>
+          <div class="drift-bar-container">
+            <div class="drift-bar" [style.width.%]="(t.driftScore / 5) * 100"
+              [style.background]="t.driftScore >= 4
+                ? 'oklch(55% 0.18 25)'
+                : t.driftScore >= 2
+                  ? 'oklch(70% 0.15 75)'
+                  : 'oklch(65% 0.12 200)'">
+            </div>
+            <span class="drift-label">{{ t.driftScore }} / 5</span>
+          </div>
+        </div>
+      }
+
+      <div class="field">
+        <span class="field-label">Last Action</span>
+        <span class="field-value mono">{{ plotAction() }}</span>
+      </div>
+
+    </div>
+  </app-accordion-section>
+
+  <!-- ═══ Narrative Eval ═══ -->
+  <app-accordion-section title="Narrative Eval">
+    @if (evaluation(); as eval) {
+      <div class="section-body">
+
+        <div class="field">
+          <span class="field-label">Health Delta</span>
+          <span class="field-value mono" [style.color]="healthDeltaColor(eval.healthDelta)">
+            {{ formatDelta(eval.healthDelta) }}
+          </span>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Log Entry</span>
+          <span class="field-value narrative">{{ eval.logEntry || '(none)' }}</span>
+        </div>
+
+        <div class="flag-row">
+          <span class="flag" [class.flag-on]="eval.updatePlayer">
+            {{ eval.updatePlayer ? '&#10003;' : '&#10007;' }} Player
+          </span>
+          <span class="flag" [class.flag-on]="eval.updateLocation">
+            {{ eval.updateLocation ? '&#10003;' : '&#10007;' }} Location
+          </span>
+          <span class="flag" [class.flag-on]="eval.updateEquipment">
+            {{ eval.updateEquipment ? '&#10003;' : '&#10007;' }} Equipment
+          </span>
+        </div>
+
+      </div>
+    } @else {
+      <div class="debug-empty">No evaluation yet</div>
+    }
+  </app-accordion-section>
+
+}
+
+<style>
+  :host {
+    display: block;
+    padding: 0.75rem;
+  }
+
+  .debug-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.25rem 0.75rem;
+    border-bottom: 1px solid oklch(25% 0.08 200 / 0.3);
+    margin-bottom: 0.75rem;
+  }
+
+  .debug-label {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: oklch(65% 0.12 200);
+    font-weight: 700;
+  }
+
+  .debug-round {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.8rem;
+    color: oklch(50% 0.04 265);
+  }
+
+  .debug-empty {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.85rem;
+    color: oklch(40% 0.02 265);
+    padding: 1rem;
+    text-align: center;
+    font-style: italic;
+  }
+
+  .section-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.75rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .field-label {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: oklch(50% 0.08 200);
+  }
+
+  .field-value {
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: oklch(75% 0.02 265);
+  }
+
+  .field-value.narrative {
+    font-style: italic;
+    color: oklch(80% 0.03 265);
+  }
+
+  .field-value.objective {
+    color: oklch(78% 0.1 75);
+    font-weight: 600;
+  }
+
+  .field-value.mono {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.85rem;
+  }
+
+  /* Stepper */
+  .stepper {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 0.25rem;
+  }
+
+  .stepper > .field-label {
+    margin-bottom: 0.4rem;
+  }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .step-track {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 1rem;
+    padding-top: 0.15rem;
+  }
+
+  .step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid oklch(35% 0.03 265);
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+
+  .climax-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    transform: rotate(45deg);
+  }
+
+  .step-line {
+    width: 1px;
+    min-height: 1.2rem;
+    flex: 1;
+  }
+
+  .step-text {
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    padding-bottom: 0.4rem;
+    transition: color 0.3s;
+  }
+
+  .climax-text {
+    font-weight: 600;
+    font-style: italic;
+  }
+
+  /* Alignment badge */
+  .alignment-badge {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.8rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid;
+    border-radius: 2px;
+    display: inline-block;
+    width: fit-content;
+  }
+
+  /* Drift bar */
+  .drift-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .drift-bar {
+    height: 6px;
+    border-radius: 3px;
+    transition: width 0.3s, background 0.3s;
+    min-width: 2px;
+    max-width: calc(100% - 3rem);
+    flex: 1;
+    position: relative;
+  }
+
+  .drift-bar-container::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 3rem;
+    height: 6px;
+    border-radius: 3px;
+    background: oklch(15% 0.02 265);
+  }
+
+  .drift-label {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.75rem;
+    color: oklch(50% 0.04 265);
+    flex-shrink: 0;
+  }
+
+  /* Flags */
+  .flag-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+  }
+
+  .flag {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.8rem;
+    color: oklch(40% 0.08 25);
+  }
+
+  .flag.flag-on {
+    color: oklch(60% 0.12 145);
+  }
+</style>
